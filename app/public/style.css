@@ -1,0 +1,47 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 2rem;
+  background: #fafafa;
+}
+
+h1 {
+  color: #333;
+  text-align: center;
+}
+
+.games-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+  overflow-y: auto;
+  max-height: 80vh;
+  padding-bottom: 1rem;
+}
+
+.game-card {
+  text-align: center;
+  cursor: pointer;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  transition: transform 0.2s;
+}
+
+.game-card:hover {
+  transform: scale(1.05);
+}
+
+.game-cover {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+
+.game-title {
+  margin-top: 0.5rem;
+  font-weight: bold;
+  font-size: 1rem;
+  color: #333;
+}
