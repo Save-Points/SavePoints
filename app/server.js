@@ -1,9 +1,9 @@
 const express = require("express");
-// const { Pool } = require("pg");
-// const env = require("../env.json");
+const { Pool } = require("pg");
+const env = require("../env.json");
 
 const app = express();
-// const pool = new Pool(env);
+const pool = new Pool(env);
 const hostname = "localhost";
 const port = 3000;
 
@@ -33,7 +33,7 @@ async function getTwitchToken() {
   }
 }
 
-// pool.connect().then(() => console.log(`Connected to ${env.database}`));
+pool.connect().then(() => console.log(`Connected to ${env.database}`));
 
 app.get("/games", (req, res) => {
   res.json({
