@@ -27,3 +27,36 @@ fetch("/games")
     });
   })
   .catch(err => console.error("Error loading games:", err));
+
+const searchInput = document.getElementById("searchInput");
+const searchButton = document.getElementById("searchButton");
+const searchResults = document.getElementById("searchResults");
+
+searchButton.addEventListener("click", () => {
+  const searchTerm = searchInput.value;
+  if (!searchTerm) {
+    return;
+  }
+
+  searchResults.textContent = "Loading...";
+
+  fetch("/api/search", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({searchTerm: searchTerm})
+  }).then((response) => {
+    if (response.status >= 400) {
+      response.json().then((body) => {
+        searchResults.textContent = `Error: ${body.error}`;
+      })
+    } else {
+      response.json().then((data) => {
+        searchResults.textContent = JSON.stringify(data, null, 2);
+      });
+    }
+  }).catch(error => {
+    searchResults.textContent = `Error: ${error.message}`;
+  })
+})
