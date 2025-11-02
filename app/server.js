@@ -1,14 +1,20 @@
+require('dotenv').config();
+
 const express = require("express");
 const { Pool } = require("pg");
-const env = require("../env.json");
+const pool = new Pool({
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_DATABASE,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
+});
 
 const app = express();
-const pool = new Pool(env);
 const hostname = "localhost";
 const port = 3000;
 
 let axios = require("axios");
-require('dotenv').config();
 
 app.use(express.json());
 app.use(express.static(__dirname + "/public"));
@@ -33,7 +39,7 @@ async function getTwitchToken() {
   }
 }
 
-pool.connect().then(() => console.log(`Connected to ${env.database}`));
+pool.connect().then(() => console.log(`Connected to database: ${process.env.DB_DATABASE}`));
 
 app.get("/games", (req, res) => {
   res.json({
@@ -67,9 +73,16 @@ app.post("/api/search", async (req, res) => {
       }} 
     );
     res.json(apiResponse.data);
-  } catch (err) {
-    console.log("Error querying IGDB");
-    res.status(500).json({error: "Error quertying IGDB"})
+  } catch (error) {
+    if (error.response && error.response.status == 401) {
+      console.log("Access token expired, fetching a new one..");
+      await getTwitchToken();
+
+      return res.status(503).json({error: "Please try again"});
+    } else {
+      console.log("Error querying IGDB:", error.message);
+      res.status(500).json({error: "Error querying IGDB"})
+    }
   }
 });
 
