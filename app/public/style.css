@@ -45,3 +45,43 @@ h1 {
   font-size: 1rem;
   color: #333;
 }
+
+.search-section {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: #f0f0f0;
+  border-radius: 8px;
+}
+
+.search-section input[type="text"] {
+  padding: 8px;
+  margin-right: 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  width: 250px;
+}
+
+.search-section button {
+  padding: 8px 12px;
+  border-radius: 4px;
+  border: none;
+  background: #007bff;
+  color: white;
+  cursor: pointer;
+}
+
+.search-section button:hover {
+  background: #0056b3;
+}
+
+.search-results {
+  background: #333;
+  color: #f0f0f0;
+  padding: 1rem;
+  border-radius: 4px;
+  max-height: 300px;
+  overflow-y: auto;
+  white-space: pre-wrap; 
+  word-wrap: break-word;
+}

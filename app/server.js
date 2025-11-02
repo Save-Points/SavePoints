@@ -1,16 +1,45 @@
+require('dotenv').config();
+
 const express = require("express");
 const { Pool } = require("pg");
-const env = require("../env.json");
+const pool = new Pool({
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DB_DATABASE,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
+});
 
 const app = express();
-const pool = new Pool(env);
 const hostname = "localhost";
 const port = 3000;
+
+let axios = require("axios");
 
 app.use(express.json());
 app.use(express.static(__dirname + "/public"));
 
-pool.connect().then(() => console.log(`Connected to ${env.database}`));
+let CLIENT_ID = process.env.TWITCH_CLIENT_ID;
+let CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
+let accessToken = null;
+
+async function getTwitchToken() {
+  try {
+    let response = await axios.post(
+      'https://id.twitch.tv/oauth2/token', null, { params: {
+        client_id: CLIENT_ID,
+        client_secret: CLIENT_SECRET,
+        grant_type: 'client_credentials',
+      }}
+    );
+    accessToken = response.data.access_token;
+    console.log("Successfully fetched new access token");
+  } catch (err) {
+    console.error("Error fetching access token")
+  }
+}
+
+pool.connect().then(() => console.log(`Connected to database: ${process.env.DB_DATABASE}`));
 
 app.get("/games", (req, res) => {
   res.json({
@@ -25,6 +54,39 @@ app.get("/games", (req, res) => {
   });
 });
 
+app.post("/api/search", async (req, res) => {
+  let searchTerm = req.body.searchTerm;
+  if (!searchTerm) {
+    return res.status(400).json({error: 'Search term is required'});
+  }
+  if (!accessToken) {
+    await getTwitchToken();
+  }
+  try {
+    let apiResponse = await axios.post(
+      "https://api.igdb.com/v4/games",
+      `fields name, cover.url; search "${searchTerm}"; limit 10;`,
+      {headers: {
+        "Client-ID": CLIENT_ID,
+        "Authorization": `Bearer ${accessToken}`,
+        "Accept": "application/json",
+      }} 
+    );
+    res.json(apiResponse.data);
+  } catch (error) {
+    if (error.response && error.response.status == 401) {
+      console.log("Access token expired, fetching a new one..");
+      await getTwitchToken();
+
+      return res.status(503).json({error: "Please try again"});
+    } else {
+      console.log("Error querying IGDB:", error.message);
+      res.status(500).json({error: "Error querying IGDB"})
+    }
+  }
+});
+
 app.listen(port, hostname, () => {
   console.log(`Listening at http://${hostname}:${port}`);
+  getTwitchToken();
 });
