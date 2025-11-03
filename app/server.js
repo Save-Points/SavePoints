@@ -1,23 +1,18 @@
-require('dotenv').config();
+import express from 'express';
+import authRoutes from './routes/authRoutes.js';
+import dotenv from 'dotenv';
+import axios from 'axios';
 
-const express = require('express');
-const { Pool } = require('pg');
-const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_DATABASE,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
-});
+dotenv.config();
 
 const app = express();
 const hostname = 'localhost';
 const port = 3000;
 
-let axios = require('axios');
-
 app.use(express.json());
-app.use(express.static(__dirname + '/public'));
+app.use(express.static('app/public'));
+
+app.use('/auth', authRoutes);
 
 let CLIENT_ID = process.env.TWITCH_CLIENT_ID;
 let CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
@@ -42,10 +37,6 @@ async function getTwitchToken() {
         console.error('Error fetching access token');
     }
 }
-
-pool.connect().then(() =>
-    console.log(`Connected to database: ${process.env.DB_DATABASE}`),
-);
 
 app.get('/games', (req, res) => {
     res.json({
@@ -124,7 +115,7 @@ app.post('/api/search', async (req, res) => {
     }
 });
 
-app.get("/api/game/:id", async (req, res) => {
+app.get('/api/game/:id', async (req, res) => {
     let gameId = req.params.id;
 
     if (!accessToken) {
@@ -136,11 +127,13 @@ app.get("/api/game/:id", async (req, res) => {
             'https://api.igdb.com/v4/games',
             `fields name, summary, cover.url, aggregated_rating, first_release_date, platforms.name, genres.name;
             where id = ${gameId};`,
-            {headers: {
-                "Client-ID": CLIENT_ID,
-                "Authorization": `Bearer ${accessToken}`,
-                "Accept": "application/json",
-            }}
+            {
+                headers: {
+                    'Client-ID': CLIENT_ID,
+                    Authorization: `Bearer ${accessToken}`,
+                    Accept: 'application/json',
+                },
+            },
         );
         res.json(apiResponse.data[0]);
     } catch (error) {
@@ -154,7 +147,7 @@ app.get("/api/game/:id", async (req, res) => {
             res.status(500).json({ error: 'Error querying IGDB' });
         }
     }
-})
+});
 
 app.listen(port, hostname, () => {
     console.log(`Listening at http://${hostname}:${port}`);
