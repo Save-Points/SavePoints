@@ -3,133 +3,133 @@ let currentGenre = 'all';
 let gameListIndexNew = 0;
 
 function fetchGenres() {
-  const dropdown = document.getElementById('genreFilter');
-  dropdown.innerHTML = '';
+    const dropdown = document.getElementById('genreFilter');
+    dropdown.innerHTML = '';
 
-  fetch('/genres')
-    .then((res) => res.json())
-    .then((genres) => {
-      const allOption = document.createElement('option');
-      allOption.value = 'all';
-      allOption.textContent = 'All Genres';
-      dropdown.appendChild(allOption);
-      if (!Array.isArray(genres)) return;
+    fetch('/genres')
+        .then((res) => res.json())
+        .then((genres) => {
+            const allOption = document.createElement('option');
+            allOption.value = 'all';
+            allOption.textContent = 'All Genres';
+            dropdown.appendChild(allOption);
+            if (!Array.isArray(genres)) return;
 
-      genres.forEach((g) => {
-        let name;
-        if (typeof g === 'string') {
-          name = g;
-        } else if (g && typeof g === 'object') {
-          if (g.name) {
-            name = g.name;
-            } else if (g.id) {
-                name = String(g.id);
-            } else {
-                name = null;
-            }
-          }
+            genres.forEach((g) => {
+                let name;
+                if (typeof g === 'string') {
+                    name = g;
+                } else if (g && typeof g === 'object') {
+                    if (g.name) {
+                        name = g.name;
+                    } else if (g.id) {
+                        name = String(g.id);
+                    } else {
+                        name = null;
+                    }
+                }
 
-        if (!name || name == 'Card & Board Game') return;
-        const display = name[0].toUpperCase() + name.slice(1);
-        const option = document.createElement('option');
-        option.value = name.toLowerCase();
-        option.textContent = display;
-        dropdown.appendChild(option);
-      });
-    })
-    .catch((error) => {
-      console.error('Error loading genres:', error);
-    });
+                if (!name || name == 'Card & Board Game') return;
+                const display = name[0].toUpperCase() + name.slice(1);
+                const option = document.createElement('option');
+                option.value = name.toLowerCase();
+                option.textContent = display;
+                dropdown.appendChild(option);
+            });
+        })
+        .catch((error) => {
+            console.error('Error loading genres:', error);
+        });
 }
 
 document.getElementById('genreFilter').addEventListener('change', (e) => {
-  currentGenre = e.target.value || 'all';
-  loadGames(true);
+    currentGenre = e.target.value || 'all';
+    loadGames(true);
 });
 
 function loadGames(reset = false) {
-  if (reset) gameListIndex = 0;
-  const url = `/games?limit=10&offset=${gameListIndex}&genre=${currentGenre}`;
-  fetch(url)
-    .then((res) => res.json())
-    .then((data) => {
-      const container = document.getElementById('gamesContainer');
-      if (reset) container.textContent = '';
-      data.games.forEach((game) => {
-        const card = document.createElement('div');
-        card.className = 'game-card';
-        const img = document.createElement('img');
-        img.src = game.coverUrl;
-        img.alt = game.name;
-        img.className = 'game-cover';
-        const title = document.createElement('p');
-        title.textContent = game.name;
-        title.className = 'game-title';
-        card.addEventListener('click', () => {
-          window.location.href = `game.html?id=${game.id}`;
-        });
-        card.appendChild(img);
-        card.appendChild(title);
-        container.appendChild(card);
-      });
-      gameListIndex += 10;
-    })
-    .catch((error) => console.error('Error loading games:', error));
+    if (reset) gameListIndex = 0;
+    const url = `/games?limit=10&offset=${gameListIndex}&genre=${currentGenre}`;
+    fetch(url)
+        .then((res) => res.json())
+        .then((data) => {
+            const container = document.getElementById('gamesContainer');
+            if (reset) container.textContent = '';
+            data.games.forEach((game) => {
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                const img = document.createElement('img');
+                img.src = game.coverUrl;
+                img.alt = game.name;
+                img.className = 'game-cover';
+                const title = document.createElement('p');
+                title.textContent = game.name;
+                title.className = 'game-title';
+                card.addEventListener('click', () => {
+                    window.location.href = `game.html?id=${game.id}`;
+                });
+                card.appendChild(img);
+                card.appendChild(title);
+                container.appendChild(card);
+            });
+            gameListIndex += 10;
+        })
+        .catch((error) => console.error('Error loading games:', error));
 }
 
 function loadNewReleases() {
-  const url = `/newreleases?limit=10&offset=${gameListIndexNew}`;
-  fetch(url)
-    .then((res) => res.json())
-    .then((data) => {
-      const container = document.getElementById('newReleasesContainer');
-      data.games.forEach((game) => {
-        const card = document.createElement('div');
-        card.className = 'game-card';
-        const img = document.createElement('img');
-        img.src = game.coverUrl;
-        img.alt = game.name;
-        img.className = 'game-cover';
-        const title = document.createElement('p');
-        title.textContent = game.name;
-        title.className = 'game-title';
-        card.addEventListener('click', () => {
-          window.location.href = `game.html?id=${game.id}`;
-      });
-        card.appendChild(img);
-        card.appendChild(title);
-        container.appendChild(card);
-    });
-      gameListIndexNew += 10;
-    })
-    .catch((error) => console.error('Error loading new releases:', error));
+    const url = `/newreleases?limit=10&offset=${gameListIndexNew}`;
+    fetch(url)
+        .then((res) => res.json())
+        .then((data) => {
+            const container = document.getElementById('newReleasesContainer');
+            data.games.forEach((game) => {
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                const img = document.createElement('img');
+                img.src = game.coverUrl;
+                img.alt = game.name;
+                img.className = 'game-cover';
+                const title = document.createElement('p');
+                title.textContent = game.name;
+                title.className = 'game-title';
+                card.addEventListener('click', () => {
+                    window.location.href = `game.html?id=${game.id}`;
+                });
+                card.appendChild(img);
+                card.appendChild(title);
+                container.appendChild(card);
+            });
+            gameListIndexNew += 10;
+        })
+        .catch((error) => console.error('Error loading new releases:', error));
 }
 
 function setupScrollButtons() {
-  const mainContainer = document.getElementById('gamesContainer');
-  const newContainer = document.getElementById('newReleasesContainer');
+    const mainContainer = document.getElementById('gamesContainer');
+    const newContainer = document.getElementById('newReleasesContainer');
 
-  document.getElementById('scrollLeftMain').onclick = () => {
-    mainContainer.scrollBy({ left: -200, behavior: 'smooth' });
-  };
-  document.getElementById('scrollRightMain').onclick = () => {
-    mainContainer.scrollBy({ left: 200, behavior: 'smooth' });
-  };
+    document.getElementById('scrollLeftMain').onclick = () => {
+        mainContainer.scrollBy({ left: -200, behavior: 'smooth' });
+    };
+    document.getElementById('scrollRightMain').onclick = () => {
+        mainContainer.scrollBy({ left: 200, behavior: 'smooth' });
+    };
 
-  document.getElementById('scrollLeftNew').onclick = () => {
-    newContainer.scrollBy({ left: -200, behavior: 'smooth' });
-  };
-  document.getElementById('scrollRightNew').onclick = () => {
-    newContainer.scrollBy({ left: 200, behavior: 'smooth' });
-  };
+    document.getElementById('scrollLeftNew').onclick = () => {
+        newContainer.scrollBy({ left: -200, behavior: 'smooth' });
+    };
+    document.getElementById('scrollRightNew').onclick = () => {
+        newContainer.scrollBy({ left: 200, behavior: 'smooth' });
+    };
 }
 
 document.getElementById('loadMore').onclick = () => loadGames();
 document.getElementById('loadMoreNew').onclick = () => loadNewReleases();
 
 document.getElementById('genreFilter').onchange = (e) => {
-  currentGenre = e.target.value;
-  loadGames(true);
+    currentGenre = e.target.value;
+    loadGames(true);
 };
 
 fetchGenres();
