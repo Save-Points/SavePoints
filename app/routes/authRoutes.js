@@ -40,7 +40,7 @@ async function validateRequirements(body) {
     let { username, password } = body;
 
     // TODO: decide actual length restrictions
-    if (username <= 3 || username.length >= 21 || password.length <= 7) {
+    if (username < 4 || username.length > 20 || password.length < 8) {
         return false;
     }
 
