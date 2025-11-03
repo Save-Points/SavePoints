@@ -40,7 +40,7 @@ async function validateRequirements(body) {
     let { username, password } = body;
 
     // TODO: decide actual length restrictions
-    if (username <= 3 || username.length >= 21 || password.length <= 7) {
+    if (username < 4 || username.length > 20 || password.length < 8) {
         return false;
     }
 
@@ -83,6 +83,26 @@ async function revokeToken(token) {
     }
 }
 
+async function createAuthToken(username) {
+    // generate login token, save in cookie
+    let token = makeToken();
+    // TODO: get rid of all these console logs when we are confident it works as expected
+    console.log('Generated token', token);
+    let userId = await getUserId(username);
+
+    try {
+        await pool.query(
+            'INSERT INTO auth_tokens (user_id, token) VALUES ($1, $2)',
+            [userId, token],
+        );
+    } catch (error) {
+        console.log('INSERT FAILED', error);
+        return null;
+    }
+
+    return token; // TODO
+}
+
 router.post('/create', async (req, res) => {
     let { body } = req;
 
@@ -117,8 +137,13 @@ router.post('/create', async (req, res) => {
     }
 
     // TODO automatically log people in when they create account, because why not?
+    let token = await createAuthToken(username);
 
-    return res.status(200).send(); // TODO
+    if (token) {
+        return res.status(200).cookie('token', token, cookieOptions).send(); // TODO
+    } else {
+        return res.status(500).json({ error: 'Internal server error.' });
+    }
 });
 
 router.post('/login', async (req, res) => {
@@ -163,23 +188,13 @@ router.post('/login', async (req, res) => {
         return res.status(400).json({ error: 'Invalid username or password.' }); // TODO
     }
 
-    // generate login token, save in cookie
-    let token = makeToken();
-    // TODO: get rid of all these console logs when we are confident it works as expected
-    console.log('Generated token', token);
-    let userId = await getUserId(username);
+    let token = await createAuthToken(username);
 
-    try {
-        result = await pool.query(
-            'INSERT INTO auth_tokens (user_id, token) VALUES ($1, $2)',
-            [userId, token],
-        );
-    } catch (error) {
-        console.log('INSERT FAILED', error);
+    if (token) {
+        return res.status(200).cookie('token', token, cookieOptions).send(); // TODO
+    } else {
         return res.status(500).json({ error: 'Internal server error.' });
-    }
-
-    return res.status(200).cookie('token', token, cookieOptions).send(); // TODO
+    }     
 });
 
 let authorize = (req, res, next) => {
