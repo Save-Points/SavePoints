@@ -11,9 +11,6 @@
         <div>
             <a href="login.html"><button id="login">Login</button></a>
             <a href="signup.html"><button id="signup">Sign Up</button></a>
-        </div>
-
-        <div>
             <button id="logout">Logout</button>
         </div>
 
@@ -29,7 +26,33 @@
             <div id="searchResults" class="search-results games-grid"></div>
         </div>
 
-        <div id="gamesContainer" class="games-grid"></div>
-        <script src="index.js"></script>
-    </body>
+        <div class="list-section">
+            <div class="list-header">
+                <h2>All Games</h2>
+                <select id="genreFilter">
+                    <option value="all">All Genres</option>
+                </select>
+            </div>
+            <div class="scroll-wrapper">
+                <button class="scroll-btn left" id="scrollLeftMain">&#9664;</button>
+                <div id="gamesContainer" class="games-grid horizontal-scroll"></div>
+                    <button class="scroll-btn right" id="scrollRightMain">&#9654;</button>
+                </div>
+                <button id="loadMore" class="load-more">Load More</button>
+            </div>
+
+    <div class="list-section">
+        <div class="list-header">
+            <h2>New Releases</h2>
+        </div>
+      <div class="scroll-wrapper">
+        <button class="scroll-btn left" id="scrollLeftNew">&#9664;</button>
+        <div id="newReleasesContainer" class="games-grid horizontal-scroll"></div>
+        <button class="scroll-btn right" id="scrollRightNew">&#9654;</button>
+      </div>
+      <button id="loadMoreNew" class="load-more">Load More</button>
+    </div>
+
+    <script src="index.js"></script>
+  </body>
 </html>
