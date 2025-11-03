@@ -38,8 +38,8 @@ searchButton.addEventListener('click', () => {
         return;
     }
 
-    const container = document.getElementById("searchResults");
-    container.textContent= 'Loading...';
+    const container = document.getElementById('searchResults');
+    container.textContent = 'Loading...';
 
     fetch('/api/search', {
         method: 'POST',
@@ -55,37 +55,88 @@ searchButton.addEventListener('click', () => {
                 });
             } else {
                 response.json().then((data) => {
-                    container.textContent = ""
-                    data.forEach(game => {
-                        const card = document.createElement("div");
-                        card.className = "game-card";
+                    container.textContent = '';
+                    data.forEach((game) => {
+                        const card = document.createElement('div');
+                        card.className = 'game-card';
 
-                        const img = document.createElement("img");
-                        let imageUrl
+                        const img = document.createElement('img');
+                        let imageUrl;
                         if (game.cover) {
-                            imageUrl = game.cover.url.replace('t_thumb', 't_cover_big');
+                            imageUrl = game.cover.url.replace(
+                                't_thumb',
+                                't_cover_big',
+                            );
                         } else {
-                            imageUrl = 'https://placehold.co/150x200?text=No+Image';
+                            imageUrl =
+                                'https://placehold.co/150x200?text=No+Image';
                         }
                         img.src = imageUrl;
                         img.alt = game.name;
-                        img.className = "game-cover";
+                        img.className = 'game-cover';
 
-                        const title = document.createElement("p");
+                        const title = document.createElement('p');
                         title.textContent = game.name;
-                        title.className = "game-title";
+                        title.className = 'game-title';
 
-                        card.addEventListener("click", () => {
+                        card.addEventListener('click', () => {
                             window.location.href = `game.html?id=${game.id}`;
                         });
                         card.appendChild(img);
                         card.appendChild(title);
                         container.appendChild(card);
-                    })
+                    });
                 });
             }
         })
         .catch((error) => {
             searchResults.textContent = `Error: ${error.message}`;
         });
+});
+
+// TODO: eventually we should move all of this login to some header that we can use across all of our site so users can logout/login anywhere
+let logoutButton = document.getElementById('logout');
+let loginButton = document.getElementById('login');
+let signupButton = document.getElementById('signup');
+
+async function checkStatus() {
+    fetch('/auth/status', {
+        credentials: 'include',
+    })
+        .then((response) => {
+            response.json().then((body) => {
+                if (body.loggedIn) {
+                    loginButton.style.display = 'none';
+                    signupButton.style.display = 'none';
+                    logoutButton.style.display = 'inline-block';
+                } else {
+                    loginButton.style.display = 'inline-block';
+                    signupButton.style.display = 'inline-block';
+                    logoutButton.style.display = 'none';
+                }
+            });
+        })
+        .catch((error) => {
+            console.log(`Status check failed: ${error}`);
+        });
+}
+
+checkStatus();
+
+logoutButton.addEventListener('click', async () => {
+    await fetch('/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+    })
+        .then((response) => {
+            if (response.status == 200) {
+                console.log('Logout success');
+            } else {
+                console.log(`Logout failed ${response.status}`);
+            }
+        })
+        .catch((error) => {
+            console.log(`Logout failed: ${error}`);
+        });
+    await checkStatus();
 });

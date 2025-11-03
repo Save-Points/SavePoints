@@ -2,12 +2,17 @@
     "name": "savepoint",
     "version": "1.0.0",
     "main": "app/server.js",
+    "type": "module",
     "scripts": {
         "start": "node app/server.js",
-        "format": "prettier --write ."
+        "format": "prettier --write .",
+        "setup": "psql -U postgres -f setup.sql"
     },
     "dependencies": {
+        "argon2": "^0.44.0",
         "axios": "^1.13.1",
+        "cookie-parser": "^1.4.7",
+        "crypto": "^1.0.1",
         "dotenv": "^17.2.3",
         "express": "^4.21.2",
         "pg": "^8.16.3"
