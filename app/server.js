@@ -101,7 +101,7 @@ app.post('/api/search', async (req, res) => {
     try {
         let apiResponse = await axios.post(
             'https://api.igdb.com/v4/games',
-            `fields name, cover.url; search "${searchTerm}"; limit 10;`,
+            `fields id, name, cover.url; search "${searchTerm}"; limit 10;`,
             {
                 headers: {
                     'Client-ID': CLIENT_ID,
@@ -113,7 +113,7 @@ app.post('/api/search', async (req, res) => {
         res.json(apiResponse.data);
     } catch (error) {
         if (error.response && error.response.status == 401) {
-            console.log('Access token expired, fetching a new one..');
+            console.log('Access token expired, fetching a new one...');
             await getTwitchToken();
 
             return res.status(503).json({ error: 'Please try again' });
@@ -123,6 +123,38 @@ app.post('/api/search', async (req, res) => {
         }
     }
 });
+
+app.get("/api/game/:id", async (req, res) => {
+    let gameId = req.params.id;
+
+    if (!accessToken) {
+        await getTwitchToken();
+    }
+
+    try {
+        let apiResponse = await axios.post(
+            'https://api.igdb.com/v4/games',
+            `fields name, summary, cover.url, aggregated_rating, first_release_date, platforms.name, genres.name;
+            where id = ${gameId};`,
+            {headers: {
+                "Client-ID": CLIENT_ID,
+                "Authorization": `Bearer ${accessToken}`,
+                "Accept": "application/json",
+            }}
+        );
+        res.json(apiResponse.data[0]);
+    } catch (error) {
+        if (error.response && error.response.status == 401) {
+            console.log('Access token expired, fetching a new one...');
+            await getTwitchToken();
+
+            return res.status(503).json({ error: 'Please try again' });
+        } else {
+            console.log('Error querying IGDB:', error.message);
+            res.status(500).json({ error: 'Error querying IGDB' });
+        }
+    }
+})
 
 app.listen(port, hostname, () => {
     console.log(`Listening at http://${hostname}:${port}`);
