@@ -107,14 +107,14 @@ router.post('/create', async (req, res) => {
     let { body } = req;
 
     if (!(await validateLogin(body))) {
-        return res.sendStatus(400); // TODO
+        return res.status(400).json({ error: 'Invalid input.' }); // TODO: give detailed feedback on what went wrong
     }
 
     let { username, password } = body;
     console.log(username, password);
 
     if (!(await validateRequirements(body))) {
-        return res.sendStatus(400);
+        return res.status(400).json({ error: 'Invalid input.' }); // TODO: give detailed feedback on what went wrong
     }
 
     let hash;
@@ -122,7 +122,7 @@ router.post('/create', async (req, res) => {
         hash = await argon2.hash(password);
     } catch (error) {
         console.log('HASH FAILED', error);
-        return res.sendStatus(500); // TODO
+        return res.status(500).json({ error: 'Internal server error.' }); // TODO: maybe more detailed feedback?
     }
 
     console.log(hash); // TODO just for debugging
@@ -133,7 +133,7 @@ router.post('/create', async (req, res) => {
         );
     } catch (error) {
         console.log('INSERT FAILED', error);
-        return res.sendStatus(500); // TODO
+       return res.status(500).json({ error: 'Internal server error.' }); // TODO
     }
 
     // TODO automatically log people in when they create account, because why not?
@@ -151,7 +151,7 @@ router.post('/login', async (req, res) => {
     let { body } = req;
     // TODO validate body is correct shape and type
     if (!validateLogin(body)) {
-        return res.status(400).json({ error: 'Invalid body.' }); // TODO
+        return res.status(400).json({ error: 'Invalid input.' }); // TODO
     }
     let { username, password } = body;
 
@@ -168,7 +168,7 @@ router.post('/login', async (req, res) => {
 
     // username doesn't exist
     if (result.rows.length === 0) {
-        return res.status(400).json({ error: 'Invalid username or password.' }); // TODO
+        return res.status(401).json({ error: 'Invalid username or password.' }); // TODO
     }
     let hash = result.rows[0].password;
     console.log(username, password, hash); // TODO REMOVE ALL CONSOLE LOGS WHEN DONE
@@ -185,7 +185,7 @@ router.post('/login', async (req, res) => {
     console.log(verifyResult);
     if (!verifyResult) {
         console.log("Credentials didn't match");
-        return res.status(400).json({ error: 'Invalid username or password.' }); // TODO
+        return res.status(401).json({ error: 'Invalid username or password.' }); // TODO
     }
 
     let token = await createAuthToken(username);
@@ -212,15 +212,20 @@ router.post('/logout', (req, res) => {
 
     if (token === undefined) {
         console.log('Already logged out');
-        return res.sendStatus(400); // TODO
+        return res.status(400).json({ error: 'No active session found.' }); // TODO
     }
 
     if (!isTokenActive(token)) {
         console.log("Token doesn't exist");
-        return res.sendStatus(400); // TODO
+        return res.status(400).json({ error: 'No active session found.' }); // TODO
     }
 
-    revokeToken(token);
+    try {
+        revokeToken(token);
+    } catch {
+        return res.status(500).json({ error: 'Internal server error.' });
+    }
+
     console.log('Token revoked');
 
     return res.status(200).clearCookie('token', cookieOptions).send();
