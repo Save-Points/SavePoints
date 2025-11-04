@@ -1,6 +1,6 @@
 # SavePoints
 
-SavePoints is a social playform for gamers to share reviews and ratings on their favorite games while discovering new games through community recommendations.
+SavePoints is a social platform for gamers to share reviews and ratings on their favorite games while discovering new games through community recommendations.
 
 ## Table of Contents
 - [Setup](#setup)
