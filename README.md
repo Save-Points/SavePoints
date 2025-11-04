@@ -42,7 +42,7 @@ Copy the `.env.sample` file into a new file called `.env` and configure the vari
 npm run setup
 ```
 
-**4. Running the server:**
+**5. Running the server:**
 
 After you are ready to run the server to test your code, run the command:
 
