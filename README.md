@@ -342,7 +342,7 @@ sequenceDiagram
 
     U->>S: POST /auth/login (username, password)
     S->>S: Validate inputs
-    S->>DB: SELECT password FROM users
+    S->>DB: SELECT password FROM users WHERE username = ?
     DB-->>S: password
     S->>S: Verify input password to actual password with argon2
     alt password correct
