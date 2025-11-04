@@ -194,7 +194,7 @@ router.post('/login', async (req, res) => {
         return res.status(200).cookie('token', token, cookieOptions).send(); // TODO
     } else {
         return res.status(500).json({ error: 'Internal server error.' });
-    }     
+    }
 });
 
 let authorize = (req, res, next) => {
