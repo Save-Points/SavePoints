@@ -52,7 +52,7 @@ npm run start
 
 ## API Endpoints
 
-### POST /auth/create
+### `POST /auth/create`
 **Description:** Create new user account. On success, logs the user in to the newly created account and sets auth token in their cookies.
 
 **Request Body:**
@@ -85,7 +85,7 @@ No body is returned, generated auth token is set in user's cookies.
 }
 ```
 
-### POST /auth/login
+### `POST /auth/login`
 **Description:** Log in to an existing user account. On success, sets auth token in the user's cookies.
 
 **Body:**
@@ -124,7 +124,7 @@ No body is returned, generated auth token is set in user's cookies.
 }
 ```
 
-### POST /auth/logout
+### `POST /auth/logout`
 **Description:** Log out of current authorized user account. On success, revokes the auth token in server database and clears the token from user's cookies. 
 
 **Request Body:**
@@ -157,7 +157,7 @@ No body is returned, auth token is cleared in user's cookies and revoked in serv
 }
 ```
 
-### GET /auth/status
+### `GET /auth/status`
 **Description:** Get current login status for the user. 
 
 **Request Cookies:**:
@@ -180,7 +180,7 @@ token - authentication token
 }
 ```
 
-### POST /api/search
+### `POST /api/search`
 **Description:** Searches IGDB for games based on the provided search term.
 
 **Body:**
@@ -225,7 +225,7 @@ token - authentication token
 }
 ```
 
-### GET /api/game/:id
+### `GET /api/game/:id`
 **Description:** Queries IGDB for specific based on the queried game ID.
 
 **Path Parameters:**
