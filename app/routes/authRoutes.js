@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { pool, getUserId } from '../utils/dbUtils.js';
+import { pool } from '../utils/dbUtils.js';
 import argon2 from 'argon2'; // or bcrypt, whatever
 import cookieParser from 'cookie-parser';
 import crypto from 'crypto';
