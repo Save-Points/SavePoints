@@ -83,12 +83,11 @@ async function revokeToken(token) {
     }
 }
 
-async function createAuthToken(username) {
+async function createAuthToken(userId) {
     // generate login token, save in cookie
     let token = makeToken();
     // TODO: get rid of all these console logs when we are confident it works as expected
     console.log('Generated token', token);
-    let userId = await getUserId(username);
 
     try {
         await pool.query(
@@ -126,9 +125,10 @@ router.post('/create', async (req, res) => {
     }
 
     console.log(hash); // TODO just for debugging
+    let result;
     try {
-        await pool.query(
-            'INSERT INTO users (username, password) VALUES ($1, $2)',
+        result = await pool.query(
+            'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id',
             [username, hash],
         );
     } catch (error) {
@@ -137,7 +137,7 @@ router.post('/create', async (req, res) => {
     }
 
     // TODO automatically log people in when they create account, because why not?
-    let token = await createAuthToken(username);
+    let token = await createAuthToken(result.rows[0].id);
 
     if (token) {
         return res.status(200).cookie('token', token, cookieOptions).send(); // TODO
@@ -158,7 +158,7 @@ router.post('/login', async (req, res) => {
     let result;
     try {
         result = await pool.query(
-            'SELECT password FROM users WHERE username = $1',
+            'SELECT id, password FROM users WHERE username = $1',
             [username],
         );
     } catch (error) {
@@ -188,7 +188,7 @@ router.post('/login', async (req, res) => {
         return res.status(401).json({ error: 'Invalid username or password.' }); // TODO
     }
 
-    let token = await createAuthToken(username);
+    let token = await createAuthToken(result.rows[0].id);
 
     if (token) {
         return res.status(200).cookie('token', token, cookieOptions).send(); // TODO
