@@ -101,11 +101,12 @@ app.get('/games', async (req, res) => {
             }
         }
 
-        const query = `fields id, name, cover.url;
+        const query = `fields id, name, cover.url, game_type, version_parent, first_release_date, total_rating_count;
                    ${whereClause}
-                   sort popularity desc;
+                   sort total_rating_count desc;
                    limit ${limit};
-                   offset ${offset};`;
+                   offset ${offset};
+                   where game_type = 0 & version_parent = null & first_release_date != null;`;
 
         const apiResponse = await axios.post(
             'https://api.igdb.com/v4/games',
@@ -169,14 +170,15 @@ app.get('/newreleases', async (req, res) => {
     const oneMonthAgo = now - 30 * 24 * 60 * 60;
 
     try {
-        const query = `fields id, name, cover.url, first_release_date;
+        const query = `fields id, name, cover.url, first_release_date, game_type, version_parent;
                        where first_release_date != null
                        & first_release_date > ${oneMonthAgo}
                        & first_release_date <= ${now}
                        & cover != null;
                        sort first_release_date desc;
                        limit ${limit};
-                       offset ${offset};`;
+                       offset ${offset};
+                       where game_type = 0 & version_parent = null;`;
 
         const response = await axios.post(
             'https://api.igdb.com/v4/games',
@@ -220,7 +222,7 @@ app.post('/api/search', async (req, res) => {
     try {
         let apiResponse = await axios.post(
             'https://api.igdb.com/v4/games',
-            `fields id, name, cover.url; search "${searchTerm}"; limit 10;`,
+            `fields id, name, game_type, version_parent, cover.url, first_release_date; search "${searchTerm}"; where game_type = 0 & version_parent = null & first_release_date != null; limit 20;`,
             {
                 headers: {
                     'Client-ID': CLIENT_ID,
