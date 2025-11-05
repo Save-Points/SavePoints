@@ -140,8 +140,10 @@ setupScrollButtons();
 const searchInput = document.getElementById('searchInput');
 const searchButton = document.getElementById('searchButton');
 const searchResults = document.getElementById('searchResults');
+const searchResultsDisplay = document.getElementById('searchResultsDisplay');
 
 searchButton.addEventListener('click', () => {
+    searchResultsDisplay.style.display = 'block';
     const searchTerm = searchInput.value;
     if (!searchTerm) {
         return;
