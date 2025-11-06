@@ -141,6 +141,7 @@ const searchInput = document.getElementById('searchInput');
 const searchButton = document.getElementById('searchButton');
 const searchResults = document.getElementById('searchResults');
 const searchPicker = document.getElementById('searchType');
+const searchResultsDisplay = document.getElementById('searchResultsDisplay');
 
 searchPicker.addEventListener('change', () => {
     const searchType = searchPicker.value;
@@ -156,7 +157,6 @@ searchPicker.addEventListener('change', () => {
             break;
     }
 });
-const searchResultsDisplay = document.getElementById('searchResultsDisplay');
 
 searchButton.addEventListener('click', () => {
     searchResultsDisplay.style.display = 'block';
