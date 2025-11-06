@@ -416,11 +416,9 @@ sequenceDiagram
 
     U->>S: POST /auth/create (username, password)
     S->>S: Validate inputs, hash password with argon2
-    S->>DB: INSERT INTO users (username, password)
-    DB-->>S: INSERT successful
-    S->>S: Generate authentication token
-    S->>DB: SELECT id FROM users WHERE username = ?
+    S->>DB: INSERT INTO users (username, password) RETURNING id
     DB->>S: id
+    S->>S: Generate authentication token
     S->>DB: INSERT INTO auth_tokens (user_id, token)
     DB-->>S: INSERT successful
     S-->>U: Set authentication token in cookies
@@ -436,13 +434,11 @@ sequenceDiagram
 
     U->>S: POST /auth/login (username, password)
     S->>S: Validate inputs
-    S->>DB: SELECT password FROM users WHERE username = ?
-    DB-->>S: password
+    S->>DB: SELECT id, password FROM users WHERE username = ?
+    DB->>S: id, password
     S->>S: Verify input password to actual password with argon2
     alt password correct
         S->>S: Generate authentication token
-        S->>DB: SELECT id FROM users WHERE username = ?
-        DB->>S: id
         S->>DB: INSERT INTO auth_tokens (user_id, token)
         DB-->>S: INSERT successful
         S-->>U: Set authentication token in cookies\

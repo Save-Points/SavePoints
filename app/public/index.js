@@ -156,8 +156,10 @@ searchPicker.addEventListener('change', () => {
             break;
     }
 });
+const searchResultsDisplay = document.getElementById('searchResultsDisplay');
 
 searchButton.addEventListener('click', () => {
+    searchResultsDisplay.style.display = 'block';
     const searchTerm = searchInput.value;
     if (!searchTerm) {
         return;
