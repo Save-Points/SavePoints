@@ -17,6 +17,8 @@ CREATE TABLE users (
     is_admin BOOLEAN DEFAULT false
 );
 
+CREATE INDEX idx_users_username_lower ON users (LOWER(username));
+
 CREATE TABLE auth_tokens (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id),

@@ -161,9 +161,6 @@ searchPicker.addEventListener('change', () => {
 searchButton.addEventListener('click', () => {
     searchResultsDisplay.style.display = 'block';
     const searchTerm = searchInput.value;
-    if (!searchTerm) {
-        return;
-    }
 
     const container = document.getElementById('searchResults');
     container.textContent = 'Loading...';

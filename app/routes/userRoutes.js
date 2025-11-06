@@ -4,17 +4,22 @@ import { pool } from '../utils/dbUtils.js';
 let router = Router();
 
 router.get('/search', async (req, res) => {
-    let searchTerm = req.query.term;
+    const searchTerm = req.query.term;
 
-    if (!searchTerm) {
-        return res.status(400).json({ error: 'No search term provided.' });
+    let query;
+    let values;
+
+    if (searchTerm) {
+        query = `SELECT id, username, profile_pic_url FROM users WHERE username ILIKE $1 LIMIT 50`;
+        values = [`${searchTerm}%`];
+    } else {
+        query = `SELECT id, username, profile_pic_url FROM users LIMIT 50`;
+        values = [];
     }
 
     try {
         await pool
-            .query(`SELECT id, username, profile_pic_url FROM users WHERE username ILIKE $1 LIMIT 50`, [
-                `${searchTerm}%`,
-            ])
+            .query(query, values)
             .then((result) => {
                 res.status(200).json({
                     rows: result.rows
