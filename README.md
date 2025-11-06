@@ -3,6 +3,7 @@
 SavePoints is a social platform for gamers to share reviews and ratings on their favorite games while discovering new games through community recommendations.
 
 ## Table of Contents
+
 - [Setup](#setup)
 - [API Endpoints](#api-endpoints)
 - [Database Schema](#database-schema)
@@ -13,6 +14,7 @@ SavePoints is a social platform for gamers to share reviews and ratings on their
 ### Prerequisites
 
 Before you can start developing with SavePoints, you'll need to make sure you have the following installed on your system:
+
 - [Node](https://nodejs.org/en/download/)
 - [Git](https://git-scm.com/downloads)
 - [PostgreSQL](https://www.postgresql.org/download)
@@ -22,9 +24,11 @@ Before you can start developing with SavePoints, you'll need to make sure you ha
 To get starting with development, follow these steps:
 
 **1. Clone the repository using Git:**
+
 ```bash
 git clone https://github.com/Save-Points/SavePoints.git
 ```
+
 You may need to generate a personal access token through GitHub to clone via HTTPS.
 
 **2. Navigate to the root of the project and install the required dependencies:**
@@ -38,6 +42,7 @@ npm install
 Copy the `.env.sample` file into a new file called `.env` and configure the variables as needed
 
 **4. Setup the PostgreSQL database:**
+
 ```bash
 npm run setup
 ```
@@ -53,9 +58,11 @@ npm run start
 ## API Endpoints
 
 ### `POST /auth/create`
+
 **Description:** Create new user account. On success, logs the user in to the newly created account and sets auth token in their cookies.
 
 **Request Body:**
+
 ```json
 {
     "username": "user",
@@ -66,19 +73,21 @@ npm run start
 **Responses:**
 
 **200 OK**
+
 ```
 No body is returned, generated auth token is set in user's cookies.
 ```
 
 **400 Bad Request** - Input validation failed.
+
 ```json
 {
     "error": "Invalid input."
 }
 ```
 
-
 **500 Internal Server Error** - Server failure (hashing, insert to database, or auth token creation)
+
 ```json
 {
     "error": "Internal server error."
@@ -86,9 +95,11 @@ No body is returned, generated auth token is set in user's cookies.
 ```
 
 ### `POST /auth/login`
+
 **Description:** Log in to an existing user account. On success, sets auth token in the user's cookies.
 
 **Body:**
+
 ```json
 {
     "username": "user",
@@ -99,11 +110,13 @@ No body is returned, generated auth token is set in user's cookies.
 **Responses:**
 
 **200 OK**
+
 ```
 No body is returned, generated auth token is set in user's cookies.
 ```
 
 **400 Bad Request** - Input validation failed.
+
 ```json
 {
     "error": "Invalid input."
@@ -111,6 +124,7 @@ No body is returned, generated auth token is set in user's cookies.
 ```
 
 **401 Unauthorized** - Invalid credentials provided.
+
 ```json
 {
     "error": "Invalid username or password."
@@ -118,6 +132,7 @@ No body is returned, generated auth token is set in user's cookies.
 ```
 
 **500 Internal Server Error** - Server failure (querying database or auth token creation)
+
 ```json
 {
     "error": "Internal server error."
@@ -125,13 +140,17 @@ No body is returned, generated auth token is set in user's cookies.
 ```
 
 ### `POST /auth/logout`
-**Description:** Log out of current authorized user account. On success, revokes the auth token in server database and clears the token from user's cookies. 
+
+**Description:** Log out of current authorized user account. On success, revokes the auth token in server database and clears the token from user's cookies.
 
 **Request Body:**
+
 ```
 None
 ```
+
 **Request Cookies:**:
+
 ```
 token - authentication token
 ```
@@ -139,11 +158,13 @@ token - authentication token
 **Responses:**
 
 **200 OK**
+
 ```
 No body is returned, auth token is cleared in user's cookies and revoked in server database.
 ```
 
 **400 Bad Request** - Invalid token provided or inactive token found.
+
 ```json
 {
     "error": "No active session found."
@@ -151,6 +172,7 @@ No body is returned, auth token is cleared in user's cookies and revoked in serv
 ```
 
 **500 Internal Server Error** - Server failure (revoking token)
+
 ```json
 {
     "error": "Internal server error."
@@ -158,9 +180,11 @@ No body is returned, auth token is cleared in user's cookies and revoked in serv
 ```
 
 ### `GET /auth/status`
-**Description:** Get current login status for the user. 
+
+**Description:** Get current login status for the user.
 
 **Request Cookies:**:
+
 ```
 token - authentication token
 ```
@@ -168,6 +192,7 @@ token - authentication token
 **Responses:**
 
 **200 OK**
+
 ```json
 // User logged in
 {
@@ -181,9 +206,11 @@ token - authentication token
 ```
 
 ### `POST /api/search`
+
 **Description:** Searches IGDB for games based on the provided search term.
 
 **Body:**
+
 ```json
 {
     "searchTerm": "miku"
@@ -193,6 +220,7 @@ token - authentication token
 **Responses:**
 
 **200 OK**
+
 ```json
 {
     "id": 202864,
@@ -200,11 +228,12 @@ token - authentication token
         "id": 223804,
         "url": "//images.igdb.com/igdb/image/upload/t_thumb/co4sos.jpg"
     },
-    "name":"Hatsune Miku: Project Diva Mega Mix+"
+    "name": "Hatsune Miku: Project Diva Mega Mix+"
 }
 ```
 
 **400 Bad Request** - Missing search term.
+
 ```json
 {
     "error": "Search term is required"
@@ -212,6 +241,7 @@ token - authentication token
 ```
 
 **500 Internal Server Error** - Server failure (querying IGDB)
+
 ```json
 {
     "error": "Error querying IGDB"
@@ -219,6 +249,7 @@ token - authentication token
 ```
 
 **503 Service Unvailable** - Access token expiration
+
 ```json
 {
     "error": "Please try again"
@@ -226,13 +257,17 @@ token - authentication token
 ```
 
 ### `GET /api/game/:id`
+
 **Description:** Queries IGDB for specific based on the queried game ID.
 
 **Path Parameters:**
+
 ```
 id - The ID of the game to fetch.
 ```
+
 **Body:**
+
 ```
 None
 ```
@@ -240,6 +275,7 @@ None
 **Responses:**
 
 **200 OK**
+
 ```json
 {
     "id": 202864,
@@ -263,7 +299,7 @@ None
     "platforms": [
         {
             "id": 6,
-            "name":"PC (Microsoft Windows)"
+            "name": "PC (Microsoft Windows)"
         }
     ],
     "summary": "Take center stage in Hatsune Miku’s premier rhythm game starring the world’s #1 virtual pop star herself. From a stunner setlist of songs to an enormous wardrobe to style, it’s the ultimate tour with Miku and friends—all it needs is you."
@@ -271,6 +307,7 @@ None
 ```
 
 **500 Internal Server Error** - Server failure (querying IGDB)
+
 ```json
 {
     "error": "Error querying IGDB"
@@ -278,43 +315,99 @@ None
 ```
 
 **503 Service Unvailable** - Access token expiration
+
 ```json
 {
     "error": "Please try again"
 }
 ```
 
+### `GET /users/search?term=`
+
+**Description:** Searches for users whose usernames that start with provided search term. The search is case-insensitive and returns up to 50 results.
+
+**Query Parameters:**
+
+```
+term - The term to search for.
+```
+
+**Body:**
+
+```
+None
+```
+
+**Responses:**
+
+**200 OK**
+
+```json
+{
+    "body": [
+        {
+            "id": 1,
+            "username": "test",
+            "profile_pic_url": null
+        },
+        {
+            "id": 2,
+            "username": "test2",
+            "profile_pic_url": null
+        }
+    ]
+}
+```
+
+**400 Bad Request** - Missing search term.
+
+```json
+{
+    "error": "No search term provided."
+}
+```
+
+**500 Internal Server Error** - Server failure (querying databases)
+
+```json
+{
+    "error": "Internal server error."
+}
+```
+
 ## Database Schema
 
 ### `users` table
-| Column           | Type         | Default          | Nullable | Description             |
-|------------------|--------------|------------------|----------|-------------------------|
-| id               | SERIAL PK    |                  | No       | User ID                 |
-| username         | VARCHAR(20)  |                  | No       | Unique username         |
-| password         | VARCHAR(255) |                  | No       | Hashed password         |
-| email            | VARCHAR(255) |                  | No       | Unique email            |
-| created_at       | TIMESTAMP    | CURRENT_TIMESTAMP| No       | Created at timestamp    |
-| updated_at       | TIMESTAMP    | CURRENT_TIMESTAMP| No       | Last updated timestamp  |
-| birthday         | DATE         | NULL             | Yes      | User birthday           |
-| bio              | TEXT         | NULL             | Yes      | User biography          |
-| privacy          | privacy_type | 'public'         | No       | User privacy setting    |
-| profile_pic_url  | TEXT         | NULL             | Yes      | URL of profile picture  |
-| is_admin         | BOOLEAN      | false            | No       | Admin flag              |
 
+| Column          | Type         | Default           | Nullable | Description            |
+| --------------- | ------------ | ----------------- | -------- | ---------------------- |
+| id              | SERIAL PK    |                   | No       | User ID                |
+| username        | VARCHAR(20)  |                   | No       | Unique username        |
+| password        | VARCHAR(255) |                   | No       | Hashed password        |
+| email           | VARCHAR(255) |                   | No       | Unique email           |
+| created_at      | TIMESTAMP    | CURRENT_TIMESTAMP | No       | Created at timestamp   |
+| updated_at      | TIMESTAMP    | CURRENT_TIMESTAMP | No       | Last updated timestamp |
+| birthday        | DATE         | NULL              | Yes      | User birthday          |
+| bio             | TEXT         | NULL              | Yes      | User biography         |
+| privacy         | privacy_type | 'public'          | No       | User privacy setting   |
+| profile_pic_url | TEXT         | NULL              | Yes      | URL of profile picture |
+| is_admin        | BOOLEAN      | false             | No       | Admin flag             |
 
 ### `auth_tokens` table
-| Column           | Type         | Default                               | Nullable | Description                               |
-|------------------|--------------|---------------------------------------|----------|-------------------------------------------|
-| id               | SERIAL PK    |                                       | No       | Token ID                                  |
-| user_id          | INT          |                                       | No       | Owner of token, references `users(id)`    |
-| token            | VARCHAR(64)  |                                       | No       | Auth token                                |
-| created_at       | TIMESTAMP    | CURRENT_TIMESTAMP                     | No       | Created at timestamp                      |
-| expires_at       | TIMESTAMP    | CURRENT_TIMESTAMP + INTERVAL '7 days' | No       | Expires at timestamp (created_at + 7 days)|
-| revoked          | BOOLEAN      | false                                 | No       | Revoked status of token                   |
+
+| Column     | Type        | Default                               | Nullable | Description                                |
+| ---------- | ----------- | ------------------------------------- | -------- | ------------------------------------------ |
+| id         | SERIAL PK   |                                       | No       | Token ID                                   |
+| user_id    | INT         |                                       | No       | Owner of token, references `users(id)`     |
+| token      | VARCHAR(64) |                                       | No       | Auth token                                 |
+| created_at | TIMESTAMP   | CURRENT_TIMESTAMP                     | No       | Created at timestamp                       |
+| expires_at | TIMESTAMP   | CURRENT_TIMESTAMP + INTERVAL '7 days' | No       | Expires at timestamp (created_at + 7 days) |
+| revoked    | BOOLEAN     | false                                 | No       | Revoked status of token                    |
 
 ## User Authentication Flow
 
 ### User Sign Up:
+
 ```mermaid
 sequenceDiagram
     participant U as User
@@ -334,6 +427,7 @@ sequenceDiagram
 ```
 
 ### User Log In:
+
 ```mermaid
 sequenceDiagram
     participant U as User
