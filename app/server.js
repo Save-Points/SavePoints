@@ -49,32 +49,48 @@ function ensureGenreCache() {
     } else {
         tokenPromise = getTwitchToken();
     }
+
     return tokenPromise
-        .then(() => {
-            return axios.post(
+        .then(async () => {
+            const headers = {
+                'Client-ID': CLIENT_ID,
+                Authorization: `Bearer ${accessToken}`,
+                Accept: 'application/json',
+            };
+
+            const [genresRes, themesRes, gameRes] = await Promise.all([
+                axios.post(
                 'https://api.igdb.com/v4/genres',
                 'fields id, name; limit 500; sort name asc;',
-                {
-                    headers: {
-                        'Client-ID': CLIENT_ID,
-                        Authorization: `Bearer ${accessToken}`,
-                        Accept: 'application/json',
-                    },
-                },
-            );
-        })
-        .then((resp) => {
+                { headers },
+                ),
+                axios.post(
+                    'https://api.igdb.com/v4/themes',
+                    'fields id, name; limit 500; sort name asc;',
+                    { headers },
+                ),
+                axios.post(
+                    'https://api.igdb.com/v4/game_modes',
+                    'fields id, name; limit 500; sort name asc;',
+                    { headers },
+                ),
+            ]);
+
+            const combined = [
+                ...genresRes.data,
+                ...themesRes.data,
+                ...gameRes.data,
+            ];
+
             genreToID = {};
-            resp.data.forEach((g) => {
-                if (g.name) {
-                    genreToID[g.name.toLowerCase()] = g.id;
-                }
+            combined.forEach((g) => {
+                if (g.name) genreToID[g.name.toLowerCase()] = g.id;
             });
             return genreToID;
         })
         .catch((error) => {
-            console.error('Error fetching genres for cache:', error.message);
-            throw error;
+            console.error('Error fetching genres/themes/game_modes for cache:', error.message);
+            res.status(500).json({ error: 'Error fetching genres' });
         });
 }
 
@@ -86,26 +102,34 @@ app.get('/games', async (req, res) => {
     if (!accessToken) await getTwitchToken();
 
     try {
-        let whereClause = 'where cover != null;';
+        let filters = [
+            'cover != null',
+            'game_type = 0',
+            'version_parent = null',
+            'first_release_date != null',
+        ];
+
         if (genre && genre !== 'all') {
-            try {
-                const map = await ensureGenreCache();
-                const gid = map[genre.toLowerCase()];
-                if (gid) {
-                    whereClause = `where genres = (${gid}) & cover != null;`;
-                } else {
-                    return res.json({ games: [] });
-                }
-            } catch (e) {
-                return res.status(500).json({ error: 'Error resolving genre' });
+            const map = await ensureGenreCache();
+            const gid = map[genre.toLowerCase()];
+            if (gid) {
+                // Genres, themes, and game_modes are considered separate, so to get more options for the user, we need to fetch all three
+                filters.push(`(genres = (${gid}) | themes = (${gid}) | game_modes = (${gid}))`);
+
+            } else {
+                return res.json({ games: [] });
             }
         }
 
-        const query = `fields id, name, cover.url;
-                   ${whereClause}
-                   sort popularity desc;
-                   limit ${limit};
-                   offset ${offset};`;
+        const whereClause = `where ${filters.join(' & ')}`;
+
+        const query = `
+            fields id, name, cover.url, game_type, version_parent, first_release_date, total_rating_count;
+            ${whereClause};
+            sort total_rating_count desc;
+            limit ${limit};
+            offset ${offset};
+        `;
 
         const apiResponse = await axios.post(
             'https://api.igdb.com/v4/games',
@@ -119,13 +143,19 @@ app.get('/games', async (req, res) => {
             },
         );
 
-        const formattedGames = (apiResponse.data || []).map((g) => ({
-            id: g.id,
-            name: g.name,
-            coverUrl: g.cover
-                ? g.cover.url.replace('t_thumb', 't_cover_big')
-                : 'https://placehold.co/150x200?text=No+Image',
-        }));
+        const formattedGames = (apiResponse.data || []).map((g) => {
+            let coverUrl;
+            if (g.cover && g.cover.url) {
+                coverUrl = g.cover.url.replace('t_thumb', 't_cover_big');
+            } else {
+                coverUrl = 'https://placehold.co/150x200?text=No+Image';
+            }
+            return {
+                id: g.id,
+                name: g.name,
+                coverUrl: coverUrl,
+            };
+        });
 
         res.json({ games: formattedGames });
     } catch (error) {
@@ -142,21 +172,37 @@ app.get('/games', async (req, res) => {
 app.get('/genres', async (req, res) => {
     if (!accessToken) await getTwitchToken();
     try {
-        const response = await axios.post(
-            'https://api.igdb.com/v4/genres',
-            'fields id, name; sort name asc;',
-            {
-                headers: {
-                    'Client-ID': CLIENT_ID,
-                    Authorization: `Bearer ${accessToken}`,
-                    Accept: 'application/json',
-                },
-            },
-        );
-        res.json(response.data);
+        const headers = {
+            'Client-ID': CLIENT_ID,
+            Authorization: `Bearer ${accessToken}`,
+            Accept: 'application/json',
+        };
+
+    const [genreRes, themeRes, gameRes] = await Promise.all([
+        axios.post('https://api.igdb.com/v4/genres', 'fields id, name; sort name asc; limit 500;', { headers }),
+        axios.post('https://api.igdb.com/v4/themes', 'fields id, name; sort name asc; limit 500;', { headers }),
+        axios.post('https://api.igdb.com/v4/game_modes', 'fields id, name; sort name asc; limit 500;', { headers }), // Note: You might want to filter keywords as there are thousands.
+    ]);
+
+    const combined = [
+        ...genreRes.data,
+        ...themeRes.data,
+        ...gameRes.data
+    ];
+
+        const seen = new Set();
+        const merged = combined.filter((g) => {
+            if (!g.name) return false;
+            const name = g.name.toLowerCase();
+            if (seen.has(name)) return false;
+            seen.add(name);
+            return true;
+        });
+
+        res.json(merged);
     } catch (error) {
-        console.error('Error fetching genres:', error.message);
-        res.status(500).json({ error: 'Failed to fetch genres' });
+        console.error('Error fetching genres/themes:', error.message);
+        res.status(500).json({ error: 'Failed to fetch genres/themes' });
     }
 });
 
@@ -169,14 +215,16 @@ app.get('/newreleases', async (req, res) => {
     const oneMonthAgo = now - 30 * 24 * 60 * 60;
 
     try {
-        const query = `fields id, name, cover.url, first_release_date;
-                       where first_release_date != null
+        const query = `fields id, name, cover.url, first_release_date, game_type, version_parent;
+                       where first_release_date != null 
+                       & game_type = 0 
                        & first_release_date > ${oneMonthAgo}
                        & first_release_date <= ${now}
                        & cover != null;
-                       sort first_release_date desc;
+                       sort total_rating_count desc;
                        limit ${limit};
-                       offset ${offset};`;
+                       offset ${offset};
+                       `;
 
         const response = await axios.post(
             'https://api.igdb.com/v4/games',
@@ -220,7 +268,12 @@ app.post('/api/search', async (req, res) => {
     try {
         let apiResponse = await axios.post(
             'https://api.igdb.com/v4/games',
-            `fields id, name, cover.url; search "${searchTerm}"; limit 10;`,
+            `fields id, name, game_type, version_parent, cover.url, first_release_date;
+            search "${searchTerm}";
+            where game_type = 0
+            & version_parent = null
+            & first_release_date != null;
+            limit 20;`,
             {
                 headers: {
                     'Client-ID': CLIENT_ID,
