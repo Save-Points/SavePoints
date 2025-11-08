@@ -140,69 +140,135 @@ setupScrollButtons();
 const searchInput = document.getElementById('searchInput');
 const searchButton = document.getElementById('searchButton');
 const searchResults = document.getElementById('searchResults');
+const searchPicker = document.getElementById('searchType');
 const searchResultsDisplay = document.getElementById('searchResultsDisplay');
+
+searchPicker.addEventListener('change', () => {
+    const searchType = searchPicker.value;
+
+    switch (searchType) {
+        case 'games':
+            searchInput.placeholder = 'Search for Games...';
+            break;
+        case 'users':
+            searchInput.placeholder = 'Search for Users...';
+            break;
+        default:
+            break;
+    }
+});
 
 searchButton.addEventListener('click', () => {
     searchResultsDisplay.style.display = 'block';
     const searchTerm = searchInput.value;
-    if (!searchTerm) {
-        return;
-    }
 
     const container = document.getElementById('searchResults');
     container.textContent = 'Loading...';
 
-    fetch('/api/search', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ searchTerm: searchTerm }),
-    })
-        .then((response) => {
-            if (response.status >= 400) {
-                response.json().then((body) => {
-                    searchResults.textContent = `Error: ${body.error}`;
-                });
-            } else {
-                response.json().then((data) => {
-                    container.textContent = '';
-                    data.forEach((game) => {
-                        const card = document.createElement('div');
-                        card.className = 'game-card';
+    const searchType = searchPicker.value;
 
-                        const img = document.createElement('img');
-                        let imageUrl;
-                        if (game.cover) {
-                            imageUrl = game.cover.url.replace(
-                                't_thumb',
-                                't_cover_big',
-                            );
-                        } else {
-                            imageUrl =
-                                'https://placehold.co/150x200?text=No+Image';
-                        }
-                        img.src = imageUrl;
-                        img.alt = game.name;
-                        img.className = 'game-cover';
-
-                        const title = document.createElement('p');
-                        title.textContent = game.name;
-                        title.className = 'game-title';
-
-                        card.addEventListener('click', () => {
-                            window.location.href = `game.html?id=${game.id}`;
+    switch (searchType) {
+        case 'games':
+            fetch('/api/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ searchTerm: searchTerm }),
+            })
+                .then((response) => {
+                    if (response.status >= 400) {
+                        response.json().then((body) => {
+                            searchResults.textContent = `Error: ${body.error}`;
                         });
-                        card.appendChild(img);
-                        card.appendChild(title);
-                        container.appendChild(card);
-                    });
+                    } else {
+                        response.json().then((data) => {
+                            container.textContent = '';
+                            data.forEach((game) => {
+                                const card = document.createElement('div');
+                                card.className = 'game-card';
+
+                                const img = document.createElement('img');
+                                let imageUrl;
+                                if (game.cover) {
+                                    imageUrl = game.cover.url.replace(
+                                        't_thumb',
+                                        't_cover_big',
+                                    );
+                                } else {
+                                    imageUrl =
+                                        'https://placehold.co/150x200?text=No+Image';
+                                }
+                                img.src = imageUrl;
+                                img.alt = game.name;
+                                img.className = 'game-cover';
+
+                                const title = document.createElement('p');
+                                title.textContent = game.name;
+                                title.className = 'game-title';
+
+                                card.addEventListener('click', () => {
+                                    window.location.href = `game.html?id=${game.id}`;
+                                });
+                                card.appendChild(img);
+                                card.appendChild(title);
+                                container.appendChild(card);
+                            });
+                        });
+                    }
+                })
+                .catch((error) => {
+                    searchResults.textContent = `Error: ${error.message}`;
                 });
-            }
-        })
-        .catch((error) => {
-            searchResults.textContent = `Error: ${error.message}`;
-        });
+            break;
+        case 'users':
+            fetch(`/users/search?term=${searchTerm}`).then((response) => {
+                if (response.status >= 400) {
+                    response.json().then((body) => {
+                        searchResults.textContent = `Error: ${body.error}`;
+                    });
+                } else {
+                    response.json().then((body) => {
+                        if (!body.rows || body.rows.length == 0) {
+                            searchResults.textContent = `No users found.`;
+                        } else {
+                            container.textContent = '';
+
+                            body.rows.forEach((user) => {
+                                const card = document.createElement('div');
+                                card.className = 'user-card';
+                                
+                                // TODO: actually style these
+                                const img = document.createElement('img');
+                                const imageUrl = user.profile_pic_url ? user.profile_pic_url.replace(
+                                        't_thumb',
+                                        't_cover_big',
+                                    ) : '/images/default_profile_pic.jpg';
+                                img.src = imageUrl;
+                                img.alt = user.username;
+                                img.className = 'user-profile-pic';
+
+                                const username = document.createElement('p');
+                                username.textContent = user.username;
+                                username.className = 'username'
+
+                                card.addEventListener('click', () => {
+                                    window.location.href = `user.html?id=${user.id}`;
+                                });
+                                card.appendChild(img);
+                                card.appendChild(username);
+                                container.appendChild(card);
+                            });
+                        }
+                    }).catch((error) => {
+                        searchResults.textContent = `Error: ${error.message}`;
+                    });
+                }
+            });
+            break;
+        default:
+            break;
+    }
 });
 
 // TODO: eventually we should move all of this login to some header that we can use across all of our site so users can logout/login anywhere

@@ -133,7 +133,7 @@ router.post('/create', async (req, res) => {
         );
     } catch (error) {
         console.log('INSERT FAILED', error);
-       return res.status(500).json({ error: 'Internal server error.' }); // TODO
+        return res.status(500).json({ error: 'Internal server error.' }); // TODO
     }
 
     // TODO automatically log people in when they create account, because why not?

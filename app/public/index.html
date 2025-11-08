@@ -15,14 +15,17 @@
         </div>
 
         <div class="search-section">
-            <h2>Search for Games</h2>
+            <h2>Search</h2>
             <input
                 type="text"
                 id="searchInput"
                 placeholder="Search for Games..."
             />
             <button id="searchButton">Search</button>
-
+            <select id="searchType">
+                <option value="games">Games</option>
+                <option value="users">Users</option>
+            </select>
             <div id="searchResultsDisplay" style="display: none;">
                 <h3>Search Results:</h3>
                 <div id="searchResults" class="search-results games-grid"></div>
