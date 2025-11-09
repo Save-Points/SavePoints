@@ -62,9 +62,9 @@ function ensureGenreCache() {
 
             const [genresRes, themesRes, gameRes] = await Promise.all([
                 axios.post(
-                'https://api.igdb.com/v4/genres',
-                'fields id, name; limit 500; sort name asc;',
-                { headers },
+                    'https://api.igdb.com/v4/genres',
+                    'fields id, name; limit 500; sort name asc;',
+                    { headers },
                 ),
                 axios.post(
                     'https://api.igdb.com/v4/themes',
@@ -91,7 +91,10 @@ function ensureGenreCache() {
             return genreToID;
         })
         .catch((error) => {
-            console.error('Error fetching genres/themes/game_modes for cache:', error.message);
+            console.error(
+                'Error fetching genres/themes/game_modes for cache:',
+                error.message,
+            );
             res.status(500).json({ error: 'Error fetching genres' });
         });
 }
@@ -116,8 +119,9 @@ app.get('/games', async (req, res) => {
             const gid = map[genre.toLowerCase()];
             if (gid) {
                 // Genres, themes, and game_modes are considered separate, so to get more options for the user, we need to fetch all three
-                filters.push(`(genres = (${gid}) | themes = (${gid}) | game_modes = (${gid}))`);
-
+                filters.push(
+                    `(genres = (${gid}) | themes = (${gid}) | game_modes = (${gid}))`,
+                );
             } else {
                 return res.json({ games: [] });
             }
@@ -180,17 +184,25 @@ app.get('/genres', async (req, res) => {
             Accept: 'application/json',
         };
 
-    const [genreRes, themeRes, gameRes] = await Promise.all([
-        axios.post('https://api.igdb.com/v4/genres', 'fields id, name; sort name asc; limit 500;', { headers }),
-        axios.post('https://api.igdb.com/v4/themes', 'fields id, name; sort name asc; limit 500;', { headers }),
-        axios.post('https://api.igdb.com/v4/game_modes', 'fields id, name; sort name asc; limit 500;', { headers }), // Note: You might want to filter keywords as there are thousands.
-    ]);
+        const [genreRes, themeRes, gameRes] = await Promise.all([
+            axios.post(
+                'https://api.igdb.com/v4/genres',
+                'fields id, name; sort name asc; limit 500;',
+                { headers },
+            ),
+            axios.post(
+                'https://api.igdb.com/v4/themes',
+                'fields id, name; sort name asc; limit 500;',
+                { headers },
+            ),
+            axios.post(
+                'https://api.igdb.com/v4/game_modes',
+                'fields id, name; sort name asc; limit 500;',
+                { headers },
+            ), // Note: You might want to filter keywords as there are thousands.
+        ]);
 
-    const combined = [
-        ...genreRes.data,
-        ...themeRes.data,
-        ...gameRes.data
-    ];
+        const combined = [...genreRes.data, ...themeRes.data, ...gameRes.data];
 
         const seen = new Set();
         const merged = combined.filter((g) => {

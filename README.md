@@ -72,7 +72,7 @@ npm run start
 
 **Responses:**
 
-**200 OK**
+**201 Created**
 
 ```
 No body is returned, generated auth token is set in user's cookies.
@@ -82,7 +82,13 @@ No body is returned, generated auth token is set in user's cookies.
 
 ```json
 {
-    "error": "Invalid input."
+    "error": "Invalid input.",
+    "fields": {
+        "email": "Invalid email format.",
+        "username": "Username must be 4-20 characters. Allowed characters are letters, numbers, dots, underscores, and hyphens.",
+        "password": "Password must be at least 8 characters.",
+        "birthdate": "You must be at least 13 years old to create an account."
+    }
 }
 ```
 
@@ -176,32 +182,6 @@ No body is returned, auth token is cleared in user's cookies and revoked in serv
 ```json
 {
     "error": "Internal server error."
-}
-```
-
-### `GET /auth/status`
-
-**Description:** Get current login status for the user.
-
-**Request Cookies:**:
-
-```
-token - authentication token
-```
-
-**Responses:**
-
-**200 OK**
-
-```json
-// User logged in
-{
-    "loggedIn": true
-}
-
-// User is not logged in or token missing/invalid
-{
-    "loggedIn": false
 }
 ```
 
@@ -375,23 +355,69 @@ None
 }
 ```
 
+### `GET /users/current`
+
+**Description:** Get current authenticated user.
+
+**Request Cookies:**:
+
+```
+token - authentication token
+```
+
+**Responses:**
+
+**200 OK**
+
+```json
+{
+    "username": "test",
+    "profile_pic_url": null
+}
+```
+
+**401 Unauthorized**
+
+```json
+{
+    "error": "Unauthorized."
+}
+```
+
+**404 Not Found**
+
+```json
+{
+    "error": "User not found."
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+    "error": "Internal server error."
+}
+```
+
 ## Database Schema
 
 ### `users` table
 
-| Column          | Type         | Default           | Nullable | Description            |
-| --------------- | ------------ | ----------------- | -------- | ---------------------- |
-| id              | SERIAL PK    |                   | No       | User ID                |
-| username        | VARCHAR(20)  |                   | No       | Unique username        |
-| password        | VARCHAR(255) |                   | No       | Hashed password        |
-| email           | VARCHAR(255) |                   | No       | Unique email           |
-| created_at      | TIMESTAMP    | CURRENT_TIMESTAMP | No       | Created at timestamp   |
-| updated_at      | TIMESTAMP    | CURRENT_TIMESTAMP | No       | Last updated timestamp |
-| birthday        | DATE         | NULL              | Yes      | User birthday          |
-| bio             | TEXT         | NULL              | Yes      | User biography         |
-| privacy         | privacy_type | 'public'          | No       | User privacy setting   |
-| profile_pic_url | TEXT         | NULL              | Yes      | URL of profile picture |
-| is_admin        | BOOLEAN      | false             | No       | Admin flag             |
+| Column          | Type         | Default           | Nullable | Description               |
+| --------------- | ------------ | ----------------- | -------- | ------------------------- |
+| id              | SERIAL PK    |                   | No       | User ID                   |
+| username        | VARCHAR(20)  |                   | No       | Unique username           |
+| password        | VARCHAR(255) |                   | No       | Hashed password           |
+| email           | VARCHAR(255) |                   | No       | Unique email              |
+| created_at      | TIMESTAMP    | CURRENT_TIMESTAMP | No       | Created at timestamp      |
+| updated_at      | TIMESTAMP    | CURRENT_TIMESTAMP | No       | Last updated timestamp    |
+| birthdate       | DATE         | NULL              | Yes      | User birthdate            |
+| bio             | TEXT         | NULL              | Yes      | User biography            |
+| privacy         | privacy_type | 'public'          | No       | User privacy setting      |
+| profile_pic_url | TEXT         | NULL              | Yes      | URL of profile picture    |
+| verified        | BOOLEAN      | false             | No       | Email verification status |
+| is_admin        | BOOLEAN      | false             | No       | Admin flag                |
 
 ### `auth_tokens` table
 

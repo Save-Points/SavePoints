@@ -228,41 +228,47 @@ searchButton.addEventListener('click', () => {
                         searchResults.textContent = `Error: ${body.error}`;
                     });
                 } else {
-                    response.json().then((body) => {
-                        if (!body.rows || body.rows.length == 0) {
-                            searchResults.textContent = `No users found.`;
-                        } else {
-                            container.textContent = '';
+                    response
+                        .json()
+                        .then((body) => {
+                            if (!body.rows || body.rows.length == 0) {
+                                searchResults.textContent = `No users found.`;
+                            } else {
+                                container.textContent = '';
 
-                            body.rows.forEach((user) => {
-                                const card = document.createElement('div');
-                                card.className = 'user-card';
-                                
-                                // TODO: actually style these
-                                const img = document.createElement('img');
-                                const imageUrl = user.profile_pic_url ? user.profile_pic_url.replace(
-                                        't_thumb',
-                                        't_cover_big',
-                                    ) : '/images/default_profile_pic.jpg';
-                                img.src = imageUrl;
-                                img.alt = user.username;
-                                img.className = 'user-profile-pic';
+                                body.rows.forEach((user) => {
+                                    const card = document.createElement('div');
+                                    card.className = 'user-card';
 
-                                const username = document.createElement('p');
-                                username.textContent = user.username;
-                                username.className = 'username'
+                                    // TODO: actually style these
+                                    const img = document.createElement('img');
+                                    const imageUrl = user.profile_pic_url
+                                        ? user.profile_pic_url.replace(
+                                              't_thumb',
+                                              't_cover_big',
+                                          )
+                                        : '/images/default_profile_pic.jpg';
+                                    img.src = imageUrl;
+                                    img.alt = user.username;
+                                    img.className = 'user-profile-pic';
 
-                                card.addEventListener('click', () => {
-                                    window.location.href = `user.html?id=${user.id}`;
+                                    const username =
+                                        document.createElement('p');
+                                    username.textContent = user.username;
+                                    username.className = 'username';
+
+                                    card.addEventListener('click', () => {
+                                        window.location.href = `user.html?id=${user.id}`;
+                                    });
+                                    card.appendChild(img);
+                                    card.appendChild(username);
+                                    container.appendChild(card);
                                 });
-                                card.appendChild(img);
-                                card.appendChild(username);
-                                container.appendChild(card);
-                            });
-                        }
-                    }).catch((error) => {
-                        searchResults.textContent = `Error: ${error.message}`;
-                    });
+                            }
+                        })
+                        .catch((error) => {
+                            searchResults.textContent = `Error: ${error.message}`;
+                        });
                 }
             });
             break;
@@ -272,26 +278,29 @@ searchButton.addEventListener('click', () => {
 });
 
 // TODO: eventually we should move all of this login to some header that we can use across all of our site so users can logout/login anywhere
-let logoutButton = document.getElementById('logout');
-let loginButton = document.getElementById('login');
-let signupButton = document.getElementById('signup');
+const logoutButton = document.getElementById('logout');
+const loginButton = document.getElementById('login');
+const signupButton = document.getElementById('signup');
+const profileButton = document.getElementById('profile');
 
 async function checkStatus() {
-    fetch('/auth/status', {
+    fetch('/users/current', {
         credentials: 'include',
     })
         .then((response) => {
-            response.json().then((body) => {
-                if (body.loggedIn) {
-                    loginButton.style.display = 'none';
-                    signupButton.style.display = 'none';
-                    logoutButton.style.display = 'inline-block';
-                } else {
-                    loginButton.style.display = 'inline-block';
-                    signupButton.style.display = 'inline-block';
-                    logoutButton.style.display = 'none';
-                }
-            });
+            if (response.status >= 400) {
+                loginButton.classList.remove('hidden');
+                signupButton.classList.remove('hidden');
+                profileButton.classList.add('hidden');
+                profileButton.textContent = '';
+            } else {
+                response.json().then((body) => {
+                    loginButton.classList.add('hidden');
+                    signupButton.classList.add('hidden');
+                    profileButton.classList.remove('hidden');
+                    profileButton.textContent = `${body.username} ▼`;
+                });
+            }
         })
         .catch((error) => {
             console.log(`Status check failed: ${error}`);
@@ -308,6 +317,7 @@ logoutButton.addEventListener('click', async () => {
         .then((response) => {
             if (response.status == 200) {
                 console.log('Logout success');
+                location.reload();
             } else {
                 console.log(`Logout failed ${response.status}`);
             }
@@ -315,5 +325,17 @@ logoutButton.addEventListener('click', async () => {
         .catch((error) => {
             console.log(`Logout failed: ${error}`);
         });
-    await checkStatus();
+});
+
+const userDropdown = document.getElementById('userDropdown');
+
+profileButton.addEventListener('click', () => {
+    userDropdown.style.display =
+        userDropdown.style.display == 'block' ? 'none' : 'block';
+});
+
+document.addEventListener('click', (e) => {
+    if (!profileButton.contains(e.target) && !userDropdown.contains(e.target)) {
+        userDropdown.style.display = 'none';
+    }
 });

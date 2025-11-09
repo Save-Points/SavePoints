@@ -9,6 +9,56 @@ h1 {
     text-align: center;
 }
 
+.error-message {
+    color: red;
+    font-size: 0.8em;
+}
+
+.hidden {
+    display: none;
+}
+
+.auth-button {
+    background: white;
+    border: 1px solid black;
+    cursor: pointer;
+    border-radius: 6px;
+    padding: 8px 12px;
+}
+
+.auth-button:hover {
+    background: lightgray;
+}
+
+.user-menu {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: inline-block;
+}
+
+.dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid black;
+    border-radius: 6px;
+    min-width: 150px;
+    cursor: pointer;
+}
+
+.dropdown a {
+    display: block;
+    padding: 10px;
+    color: #333;
+    text-decoration: none;
+}
+
+.dropdown a:hover {
+    background: lightgray;
+}
 .genre-filter {
     text-align: center;
     margin-bottom: 1rem;
