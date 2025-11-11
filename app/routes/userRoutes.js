@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../utils/dbUtils.js';
 import cookieParser from 'cookie-parser';
+import { authorize } from '../middleware/authorize.js'
 
 let router = Router();
 router.use(cookieParser());
@@ -31,26 +32,13 @@ router.get('/search', async (req, res) => {
     }
 });
 
-router.get('/current', async (req, res) => {
-    const { token } = req.cookies;
-
-    if (!token) {
-        return res.status(401).json({ error: 'Unauthorized.' });
-    }
+router.get('/current', authorize, async (req, res) => {
+    const userId = req.user.id;
 
     try {
-        const tokenResult = await pool.query(
-            'SELECT user_id FROM auth_tokens WHERE token = $1 AND revoked = false AND expires_at > NOW()',
-            [token],
-        );
-
-        if (tokenResult.rows.length == 0) {
-            return res.status(401).json({ error: 'Unauthorized.' });
-        }
-
         const userResult = await pool.query(
             'SELECT username, profile_pic_url FROM users WHERE id = $1',
-            [tokenResult.rows[0].user_id],
+            [userId],
         );
 
         if (userResult.rows.length == 0) {

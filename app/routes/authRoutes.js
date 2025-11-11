@@ -3,6 +3,7 @@ import { pool } from '../utils/dbUtils.js';
 import argon2 from 'argon2'; // or bcrypt, whatever
 import cookieParser from 'cookie-parser';
 import crypto from 'crypto';
+import { authorize } from '../middleware/authorize.js'
 
 let router = Router();
 router.use(cookieParser());
@@ -138,19 +139,40 @@ async function validateRequirements(body) {
     return errors;
 }
 
-async function isTokenActive(token) {
+async function getUserIdByToken(token) {
     try {
         const result = await pool.query(
-            'SELECT id FROM auth_tokens WHERE token = $1 AND revoked = false AND expires_at > NOW()',
-            [token],
-        );
+            `SELECT u.id
+             FROM auth_tokens a
+             JOIN users u ON u.id = a.user_id
+             WHERE a.token = $1 AND a.revoked = false AND a.expires_at > NOW()`,
+             [token],
+        )
 
-        return result.rows.length !== 0;
+        if (result.rows.length == 0) {
+            return null;
+        }
+
+        return result.rows[0].id;
     } catch (error) {
-        console.log('GET TOKEN FAILED', error);
+        console.log('GET USER BY TOKEN FAILED', error);
         throw error;
     }
 }
+
+// async function isTokenActive(token) {
+//     try {
+//         const result = await pool.query(
+//             'SELECT id FROM auth_tokens WHERE token = $1 AND revoked = false AND expires_at > NOW()',
+//             [token],
+//         );
+
+//         return result.rows.length !== 0;
+//     } catch (error) {
+//         console.log('GET TOKEN FAILED', error);
+//         throw error;
+//     }
+// }
 
 async function revokeToken(token) {
     try {
@@ -164,19 +186,19 @@ async function revokeToken(token) {
     }
 }
 
-async function checkToken(token) {
-    if (token === undefined) {
-        return false;
-    }
+// async function checkToken(token) {
+//     if (token === undefined) {
+//         return false;
+//     }
 
-    try {
-        const active = await isTokenActive(token);
-        return active;
-    } catch (error) {
-        console.log('TOKEN CHECK FAILED', error);
-        return false;
-    }
-}
+//     try {
+//         const active = await isTokenActive(token);
+//         return active;
+//     } catch (error) {
+//         console.log('TOKEN CHECK FAILED', error);
+//         return false;
+//     }
+// }
 
 async function createAuthToken(userId) {
     // generate login token, save in cookie
@@ -296,24 +318,8 @@ router.post('/login', async (req, res) => {
     }
 });
 
-let authorize = async (req, res, next) => {
+router.post('/logout', authorize, async (req, res) => {
     const { token } = req.cookies;
-
-    const active = await checkToken(token);
-    if (!active) {
-        return res.sendStatus(403); // TODO
-    }
-    next();
-};
-
-router.post('/logout', async (req, res) => {
-    const { token } = req.cookies;
-
-    const active = await checkToken(token);
-
-    if (!active) {
-        return res.status(400).json({ error: 'No active session found.' });
-    }
 
     try {
         await revokeToken(token);
