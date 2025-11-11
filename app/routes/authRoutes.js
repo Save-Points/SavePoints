@@ -3,7 +3,7 @@ import { pool } from '../utils/dbUtils.js';
 import argon2 from 'argon2'; // or bcrypt, whatever
 import cookieParser from 'cookie-parser';
 import crypto from 'crypto';
-import { authorize } from '../middleware/authorize.js'
+import { authorize } from '../middleware/authorize.js';
 
 let router = Router();
 router.use(cookieParser());
@@ -146,8 +146,8 @@ async function getUserIdByToken(token) {
              FROM auth_tokens a
              JOIN users u ON u.id = a.user_id
              WHERE a.token = $1 AND a.revoked = false AND a.expires_at > NOW()`,
-             [token],
-        )
+            [token],
+        );
 
         if (result.rows.length == 0) {
             return null;
@@ -160,20 +160,6 @@ async function getUserIdByToken(token) {
     }
 }
 
-// async function isTokenActive(token) {
-//     try {
-//         const result = await pool.query(
-//             'SELECT id FROM auth_tokens WHERE token = $1 AND revoked = false AND expires_at > NOW()',
-//             [token],
-//         );
-
-//         return result.rows.length !== 0;
-//     } catch (error) {
-//         console.log('GET TOKEN FAILED', error);
-//         throw error;
-//     }
-// }
-
 async function revokeToken(token) {
     try {
         await pool.query(
@@ -185,20 +171,6 @@ async function revokeToken(token) {
         throw error;
     }
 }
-
-// async function checkToken(token) {
-//     if (token === undefined) {
-//         return false;
-//     }
-
-//     try {
-//         const active = await isTokenActive(token);
-//         return active;
-//     } catch (error) {
-//         console.log('TOKEN CHECK FAILED', error);
-//         return false;
-//     }
-// }
 
 async function createAuthToken(userId) {
     // generate login token, save in cookie

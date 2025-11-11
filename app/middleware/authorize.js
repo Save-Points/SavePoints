@@ -10,7 +10,7 @@ export const authorize = async (req, res, next) => {
     try {
         const result = await pool.query(
             'SELECT user_id FROM auth_tokens WHERE token = $1 AND revoked = false AND expires_at > NOW()',
-            [token]
+            [token],
         );
 
         if (result.rows.length === 0) {

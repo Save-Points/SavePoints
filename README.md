@@ -169,13 +169,20 @@ token - authentication token
 No body is returned, auth token is cleared in user's cookies and revoked in server database.
 ```
 
-**400 Bad Request** - Invalid token provided or inactive token found.
+**401 Unauthorized** - No auth token found.
 
 ```json
 {
-    "error": "No active session found."
+    "error": "No token provided."
 }
 ```
+
+**403 Forbidden** - Auth token is invalid or expired.
+
+````json
+{
+    "error": "Forbidden."
+}
 
 **500 Internal Server Error** - Server failure (revoking token)
 
@@ -183,7 +190,7 @@ No body is returned, auth token is cleared in user's cookies and revoked in serv
 {
     "error": "Internal server error."
 }
-```
+````
 
 ### `POST /api/search`
 
@@ -376,13 +383,20 @@ token - authentication token
 }
 ```
 
-**401 Unauthorized**
+**401 Unauthorized** - No auth token found.
 
 ```json
 {
-    "error": "Unauthorized."
+    "error": "No token provided."
 }
 ```
+
+**403 Forbidden** - Auth token is invalid or expired.
+
+````json
+{
+    "error": "Forbidden."
+}
 
 **404 Not Found**
 
@@ -390,7 +404,7 @@ token - authentication token
 {
     "error": "User not found."
 }
-```
+````
 
 **500 Internal Server Error**
 

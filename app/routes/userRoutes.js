@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../utils/dbUtils.js';
 import cookieParser from 'cookie-parser';
-import { authorize } from '../middleware/authorize.js'
+import { authorize } from '../middleware/authorize.js';
 
 let router = Router();
 router.use(cookieParser());
