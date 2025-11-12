@@ -1,7 +1,7 @@
-let username = document.getElementById('username');
-let password = document.getElementById('password');
-let loginButton = document.getElementById('login');
-let messageDiv = document.getElementById('message');
+const username = document.getElementById('username');
+const password = document.getElementById('password');
+const loginButton = document.getElementById('login');
+const messageDiv = document.getElementById('message');
 
 loginButton.addEventListener('click', () => {
     fetch('/auth/login', {
@@ -20,7 +20,6 @@ loginButton.addEventListener('click', () => {
                     messageDiv.textContent = body.error;
                 });
             } else {
-                messageDiv.textContent = 'Success';
                 window.location.href = '/';
             }
         })

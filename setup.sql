@@ -3,21 +3,31 @@ CREATE DATABASE savepoints;
 
 CREATE TYPE privacy_type AS ENUM('public', 'private', 'friends_only');
 
+CREATE OR REPLACE FUNCTION update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language plpgsql;
+
 CREATE TABLE users (
 	id SERIAL PRIMARY KEY,
 	username VARCHAR(20) UNIQUE NOT NULL,
 	password VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE, -- need to set to NOT NULL in future
+    email VARCHAR(255) UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- need to change this to auto update
-    birthday DATE DEFAULT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    birthdate DATE DEFAULT NULL,
     bio TEXT DEFAULT NULL,
     privacy privacy_type DEFAULT 'public',
     profile_pic_url TEXT DEFAULT NULL,
+    verified BOOLEAN DEFAULT false,
     is_admin BOOLEAN DEFAULT false
 );
 
-CREATE INDEX idx_users_username_lower ON users (LOWER(username));
+CREATE UNIQUE INDEX idx_users_username_lower ON users (LOWER(username));
+CREATE TRIGGER set_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 CREATE TABLE auth_tokens (
     id SERIAL PRIMARY KEY,

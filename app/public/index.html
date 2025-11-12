@@ -8,10 +8,21 @@
     <body>
         <h1>SavePoints</h1>
 
-        <div>
-            <a href="login.html"><button id="login">Login</button></a>
-            <a href="signup.html"><button id="signup">Sign Up</button></a>
-            <button id="logout">Logout</button>
+        <div class="user-menu">
+            <a href="login.html"
+                ><button id="login" class="auth-button hidden">Login</button></a
+            >
+            <a href="signup.html"
+                ><button id="signup" class="auth-button hidden">
+                    Sign Up
+                </button></a
+            >
+            <button id="profile" class="auth-button hidden"></button>
+            <div id="userDropdown" class="dropdown">
+                <a href="/profile.html">Profile</a>
+                <a href="/settings.html">Settings</a>
+                <a id="logout">Logout</a>
+            </div>
         </div>
 
         <div class="search-section">
@@ -26,7 +37,7 @@
                 <option value="games">Games</option>
                 <option value="users">Users</option>
             </select>
-            <div id="searchResultsDisplay" style="display: none;">
+            <div id="searchResultsDisplay" style="display: none">
                 <h3>Search Results:</h3>
                 <div id="searchResults" class="search-results games-grid"></div>
             </div>

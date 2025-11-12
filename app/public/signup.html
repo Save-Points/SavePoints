@@ -12,10 +12,12 @@
                 <div>
                     <label for="email">Email:</label>
                     <input id="email" type="text" name="email" required />
+                    <div id="emailError" class="error-message"></div>
                 </div>
                 <div>
                     <label for="username">Username:</label>
                     <input id="username" type="text" name="username" required />
+                    <div id="usernameError" class="error-message"></div>
                 </div>
                 <div>
                     <label for="password">Password:</label>
@@ -25,6 +27,16 @@
                         name="password"
                         required
                     />
+                    <div id="passwordError" class="error-message"></div>
+                </div>
+                <div>
+                    <label for="birthdate">Date of Birth:</label>
+                    <div id="birthdateWrapper" style="display: inline-block">
+                        <select id="birthmonth" name="birthmonth"></select>
+                        <select id="birthday" name="birthday"></select>
+                        <select id="birthyear" name="birthyear"></select>
+                    </div>
+                    <div id="birthdateError" class="error-message"></div>
                 </div>
                 <button id="signup">Sign Up</button>
             </div>
