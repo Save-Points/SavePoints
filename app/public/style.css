@@ -229,3 +229,43 @@ h1 {
     border-radius: 4px;
     border: 1px solid #ccc;
 }
+
+.user-card {
+    display: inline-flex;
+    align-items: center;
+    margin: 10px;
+    cursor: pointer;
+    border: 1px solid black;
+}
+
+.user-profile-pic {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    margin-right: 10px;
+}
+
+.profile-avatar {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    display: block;
+    margin: 0 auto;
+}
+
+.profile-bio {
+    white-space: pre-wrap;
+    text-align: center;
+}
+
+.settings-box {
+    max-width: 500px;
+    margin: 20px auto;
+}
+
+.settings-box input,
+.settings-box textarea {
+    width: 100%;
+    display: block;
+    margin-bottom: 10px;
+}
