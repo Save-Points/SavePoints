@@ -1,5 +1,6 @@
 async function loadProfile() {
-    // TODO: If want to view OTHER users like friends, we'll need to check the URL parameters
+    // TODO: Refactor this code to be more dynamic
+    // Check URL for a username and fetch that user's data. This allows use for one page for all profiles
     try {
         const response = await fetch('/users/current');
 
