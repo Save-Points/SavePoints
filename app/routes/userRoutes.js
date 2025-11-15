@@ -67,7 +67,7 @@ router.put('/update', authorize, async (req, res) => {
         );
         res.status(200).json({ message: 'Updated successfully' });
     } catch (error) {
-        res.status(500).json({ error: 'Internal error' });
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -87,7 +87,7 @@ router.get('/:id', async (req, res) => {
 
         res.status(200).json(result.rows[0]);
     } catch (error) {
-        res.status(500).json({ error: 'Internal error' });
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 

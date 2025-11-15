@@ -362,6 +362,40 @@ None
 }
 ```
 
+### `PUT /users/update`
+
+**Description**: Updates the profile picture and bio for the currently logged-in user.
+
+**Auth**: Required (Cookie)
+
+**Request Body**:
+```json
+{
+    "profile_pic_url": "/images/default_profile_pic.jpg",
+    "bio": "My new bio."
+}
+```
+
+**Responses:**
+
+**200 OK**
+
+```json
+{
+    "username": "test",
+    "profile_pic_url": null
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+    "error": "Internal server error."
+}
+```
+
+
 ### `GET /users/current`
 
 **Description:** Get current authenticated user.
