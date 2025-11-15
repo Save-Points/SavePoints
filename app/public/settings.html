@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Settings</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <nav>
+            <a href="profile.html" class="back-button">Back to Profile</a>
+        </nav>
+
+        <div class="settings-box">
+            <h1>Account Settings</h1>
+
+            <label for="username">Username</label>
+            <input
+                type="text"
+                id="username"
+                disabled
+                title="Usernames cannot be changed"
+            />
+
+            <label for="picUrl">Profile Picture URL</label>
+            <input
+                type="text"
+                id="picUrl"
+                placeholder="/images/default_profile_pic.jpg"
+            />
+
+            <label for="bio">Bio / Description</label>
+            <textarea
+                id="bio"
+                rows="5"
+                placeholder="Tell us about your favorite games..."
+            ></textarea>
+
+            <button id="saveBtn">Save Changes</button>
+            <p
+                id="msg"
+                style="text-align: center; margin-top: 15px; font-weight: bold"
+            ></p>
+        </div>
+
+        <script src="settings.js"></script>
+    </body>
+</html>
