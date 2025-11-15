@@ -236,7 +236,7 @@ h1 {
     padding: 16px;
     margin: 16px 0;
     border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
     color: #fff;
 }
 
@@ -251,6 +251,8 @@ h1 {
 .review-card p {
     margin-top: 10px;
     line-height: 1.5;
+}
+
 .user-card {
     display: inline-flex;
     align-items: center;
