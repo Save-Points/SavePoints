@@ -230,6 +230,29 @@ h1 {
     border: 1px solid #ccc;
 }
 
+.review-card {
+    background: #1e1e1e;
+    border: 1px solid #333;
+    padding: 16px;
+    margin: 16px 0;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+    color: #fff;
+}
+
+.review-card strong {
+    font-size: 1.1em;
+}
+
+.review-card small {
+    color: #aaa;
+}
+
+.review-card p {
+    margin-top: 10px;
+    line-height: 1.5;
+}
+
 .user-card {
     display: inline-flex;
     align-items: center;
