@@ -27,7 +27,7 @@ router.post('/:gameId', authorize, async (req, res) => {
             [userId, gameId, rating, review_text],
         );
 
-        res.json({ success: true, review: result.rows[0] });
+        res.json({ success: true });
     } catch (error) {
         console.error('Review insert error', error);
         res.status(500).json({ error: 'Failed to post review.' });
