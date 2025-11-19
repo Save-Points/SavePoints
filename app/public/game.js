@@ -97,7 +97,7 @@ function loadReviews() {
                 .map(
                     (r) => `
                 <div class="review-card">
-                    <strong>${r.username}</strong> — <span>Rating: ${r.rating}/10</span>
+                    <strong>${r.username}</strong> — <span>Rating: ${+r.rating}/10</span>
                     <p>${r.review_text ? r.review_text : ''}</p>
                     <small>${new Date(r.created_at).toLocaleString()}</small>
                 </div>
