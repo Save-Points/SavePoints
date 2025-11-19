@@ -3,7 +3,7 @@ CREATE DATABASE savepoints;
 
 CREATE TYPE privacy_type AS ENUM('public', 'private', 'friends_only');
 
-CREATE TYPE user_game_status AS ENUM('completed', 'playing', 'planned', 'wishlist', 'dropped', 'on_hold');
+CREATE TYPE user_game_status AS ENUM('completed', 'playing', 'planned', 'wishlisted', 'dropped', 'on_hold');
 
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
