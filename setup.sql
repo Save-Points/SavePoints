@@ -37,3 +37,18 @@ CREATE TABLE auth_tokens (
     expires_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP + INTERVAL '7 days'),
     revoked BOOLEAN DEFAULT false
 );
+
+CREATE TABLE reviews (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    game_id INT NOT NULL,
+    rating INT CHECK (rating >= 1 AND rating <= 10),
+    review_text TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(user_id, game_id)
+);
+
+CREATE TRIGGER update_reviews_updated_at
+BEFORE UPDATE ON reviews
+FOR EACH ROW EXECUTE FUNCTION update_updated_at();
