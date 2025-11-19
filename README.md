@@ -448,6 +448,69 @@ token - authentication token
 }
 ```
 
+### `GET /usergames/add`
+
+**Description:** Add a game to the authenticated user's game list.
+
+
+**Request Cookies:**:
+
+```
+token - authentication token
+```
+
+**Body:**
+
+```json
+{
+    "gameId": 120278,
+    "rating": 10,
+    "status": "playing",
+    "favorited": true,
+    "hoursPlayed": 50
+}
+```
+
+**Responses:**
+
+**201 Created**
+
+```
+No body is returned, game is added to user list.
+```
+
+**400 Bad Request** - Game already in user list.
+
+```json
+{
+    "error": "Game already in list."
+}
+```
+
+**401 Unauthorized** - No auth token found.
+
+```json
+{
+    "error": "No token provided."
+}
+```
+
+**403 Forbidden** - Auth token is invalid or expired.
+
+```json
+{
+    "error": "Forbidden."
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+    "error": "Internal server error."
+}
+```
+
 ## Database Schema
 
 ### `users` table
@@ -477,6 +540,19 @@ token - authentication token
 | created_at | TIMESTAMP   | CURRENT_TIMESTAMP                     | No       | Created at timestamp                       |
 | expires_at | TIMESTAMP   | CURRENT_TIMESTAMP + INTERVAL '7 days' | No       | Expires at timestamp (created_at + 7 days) |
 | revoked    | BOOLEAN     | false                                 | No       | Revoked status of token                    |
+
+### `user_games` table
+
+| Column       | Type             | Default                               | Nullable | Description                               |
+|--------------|------------------|---------------------------------------|----------|-------------------------------------------|
+| user_id      | INT PK           |                                       | No       | User ID, references `users(id)`                                |
+| game_id      | INT PK           |                                       | No       | IGDB Game ID                              |
+| rating       | NUMERIC(4, 2)    | NULL                                  | Yes      | User rating of the game                   |
+| created_at   | TIMESTAMP        | CURRENT_TIMESTAMP + INTERVAL '7 days' | No       | Created at timestamp                      |
+| updated_at   | TIMESTAMP        | NULL                                  | Yes      | Updated at timestamp                      |
+| status       | user_game_status | 'planned'                             | No       | User game status                          |
+| favorited    | BOOLEAN          | false                                 | No       | Whether the game is favorited by the user |
+| hours_played | INT              | 0                                     | No       | Number of hours played                    |
 
 ## User Authentication Flow
 

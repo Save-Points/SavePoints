@@ -44,7 +44,6 @@ CREATE TABLE reviews (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
     game_id INT NOT NULL,
-    rating INT CHECK (rating >= 1 AND rating <= 10),
     review_text TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
@@ -60,7 +59,6 @@ CREATE TABLE custom_games (
 );
 
 CREATE TABLE user_games (
-    id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id) NOT NULL,
     game_id INT NOT NULL,
     -- custom_game_id INT REFERENCES custom_games(id) DEFAULT NULL,
@@ -69,9 +67,8 @@ CREATE TABLE user_games (
     updated_at TIMESTAMP DEFAULT NULL,
     status user_game_status DEFAULT 'planned',
     favorited BOOLEAN DEFAULT FALSE,
-    hours_played INT DEFAULT 0
+    hours_played INT DEFAULT 0,
+    PRIMARY KEY (user_id, game_id)
 );
 
-CREATE UNIQUE INDEX idx_unique_user_igdb ON user_games (user_id, game_id);
 CREATE TRIGGER set_user_games_updated_at BEFORE UPDATE ON user_games FOR EACH ROW EXECUTE FUNCTION update_updated_at();
-
