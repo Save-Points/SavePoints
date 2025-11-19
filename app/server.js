@@ -2,6 +2,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import userGameRoutes from './routes/userGameRoutes.js';
 import dotenv from 'dotenv';
 import axios from 'axios';
 import reviewsRoutes from './routes/reviewsRoutes.js';
@@ -18,6 +19,7 @@ app.use(express.static('app/public'));
 
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
+app.use('/usergames', userGameRoutes);
 
 app.use('/reviews', reviewsRoutes);
 
@@ -180,7 +182,7 @@ app.get('/games', async (req, res) => {
     }
 });
 
-app.get('/genres', async (req, res) => {
+app.get('/genres', async (_req, res) => {
     if (!accessToken) await getTwitchToken();
     try {
         const headers = {

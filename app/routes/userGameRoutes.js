@@ -10,19 +10,18 @@ router.post('/add', authorize, async (req, res) => {
     const userId = req.user.id;
     const { body } = req;
 
-    if (!body.igdbGameId && !body.customGameId) {
+    if (!body.gameId) {
         return res.status(400).json({ error: 'Missing game id.'});
     }
 
     try {
         const result = await pool.query(
-            `INSERT INTO user_games (user_id, igdb_game_id, custom_game_id, rating, status, favorited, hours_played) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7)
+            `INSERT INTO user_games (user_id, game_id, rating, status, favorited, hours_played) 
+             VALUES ($1, $2, $3, $4, $5, $6)
              ON CONFLICT DO NOTHING`, 
              [
                 userId, 
-                body.igdbGameId || null, 
-                body.customGameId || null, 
+                body.gameId || null, 
                 body.rating === '' ? null : Number(parseFloat(body.rating).toFixed(2)), 
                 body.status || 'planned',
                 body.favorited || false,
@@ -39,6 +38,6 @@ router.post('/add', authorize, async (req, res) => {
         console.log('ADD USER GAME FAILED', error);
         return res.status(500).json({ error: 'Internal server error.' });
     }
-})
+});
 
 export default router;

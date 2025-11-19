@@ -7,24 +7,18 @@ const router = Router();
 router.post('/:gameId', authorize, async (req, res) => {
     const userId = req.user.id;
     const gameId = parseInt(req.params.gameId);
-    const { rating, review_text } = req.body;
-
-    if (!rating || rating < 1 || rating > 10) {
-        return res.status(400).json({ error: 'Rating must be 1–10.' });
-    }
+    const { review_text } = req.body;
 
     try {
-        const result = await pool.query(
+        await pool.query(
             `
-            INSERT INTO reviews (user_id, game_id, rating, review_text)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO reviews (user_id, game_id, review_text)
+            VALUES ($1, $2, $3)
             ON CONFLICT (user_id, game_id)
-            DO UPDATE SET rating = EXCLUDED.rating,
-                          review_text = EXCLUDED.review_text,
-                          updated_at = NOW()
-            RETURNING *;
+            DO UPDATE SET review_text = EXCLUDED.review_text,
+                          updated_at = NOW();
             `,
-            [userId, gameId, rating, review_text],
+            [userId, gameId, review_text],
         );
 
         res.json({ success: true });
@@ -40,11 +34,12 @@ router.get('/:gameId', async (req, res) => {
     try {
         const result = await pool.query(
             `
-            SELECT r.id, r.rating, r.review_text, r.created_at,
+            SELECT r.id, ug.rating, r.review_text, r.created_at,
                    u.username, u.profile_pic_url
             FROM reviews r
             JOIN users u ON u.id = r.user_id
-            WHERE game_id = $1
+            JOIN user_games ug ON ug.user_id = u.id AND ug.game_id = r.game_id
+            WHERE r.game_id = $1
             ORDER BY created_at DESC;
             `,
             [gameId],
