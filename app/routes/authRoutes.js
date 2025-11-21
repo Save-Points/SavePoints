@@ -139,27 +139,6 @@ async function validateRequirements(body) {
     return errors;
 }
 
-async function getUserIdByToken(token) {
-    try {
-        const result = await pool.query(
-            `SELECT u.id
-             FROM auth_tokens a
-             JOIN users u ON u.id = a.user_id
-             WHERE a.token = $1 AND a.revoked = false AND a.expires_at > NOW()`,
-            [token],
-        );
-
-        if (result.rows.length == 0) {
-            return null;
-        }
-
-        return result.rows[0].id;
-    } catch (error) {
-        console.log('GET USER BY TOKEN FAILED', error);
-        throw error;
-    }
-}
-
 async function revokeToken(token) {
     try {
         await pool.query(

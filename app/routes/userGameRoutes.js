@@ -40,4 +40,27 @@ router.post('/add', authorize, async (req, res) => {
     }
 });
 
+router.get("/:username", async (req, res) => {
+    const username = req.params.username;
+
+    try {
+        const result = await pool.query(
+            `SELECT ug.game_id, ug.rating, ug.created_at, ug.updated_at, ug.status, ug.favorited, ug.hours_played
+            FROM user_games ug
+            JOIN users u ON u.id = ug.user_id
+            WHERE u.username = $1`,
+            [username]
+        );
+
+        if (result.rows) {
+            res.status(200).json(result.rows);
+        } else {
+            res.status(404).json({ error: "User not found." })
+        }
+    } catch (error) {
+        console.log('GET GAME LIST FAILED', error);
+        res.status(500).json({ error: "Internal server error." })
+    }
+});
+
 export default router;

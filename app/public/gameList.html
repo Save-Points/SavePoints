@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>SavePoints - Game List</title>
+        <link rel="stylesheet" href="/style.css" />
+    </head>
+    <body>
+        <h1 id="pageHeader" class="centered">Game List</h1>
+        <p id="gameInfo"></p>
+            <table id="gamesTable" class="centered-table hidden">
+                <!-- TODO: Filtering of games inside list -->
+                <colgroup>
+                    <col style="width: 5%;">
+                    <col style="width: 5%;">
+                    <col style="width: 35;">
+                    <col style="width: 10%;">
+                    <col style="width: 15%;">
+                    <col style="width: 15%;">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th style="color: blue;">#</th>
+                        <th style="color: blue;">Image</th>
+                        <th id="titleHead" class="sorter">Title</th>
+                        <th id="ratingHead" class="sorter">Rating</th>
+                        <th id="statusHead" class="sorter">Status</th>
+                        <th id="hoursPlayedHead" class="sorter">Hours Played</th>
+                    </tr>
+                </thead>
+                <tbody id="gamesBody"></tbody>
+            </table>
+            
+            <div class="hidden" id="message"></div>
+
+        
+        <script src="/gameList.js"></script>
+    </body>
+</html>

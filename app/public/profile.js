@@ -24,6 +24,8 @@ async function loadProfile() {
         const date = new Date(dateStr);
         document.getElementById('joinDate').textContent =
             date.toLocaleDateString();
+        
+        document.getElementById('gameView').href = `/gamelist/${user.username}`
 
         // TODO: Call functions to load dynamic content
     } catch (error) {

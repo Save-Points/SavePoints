@@ -57,6 +57,27 @@ npm run start
 
 ## API Endpoints
 
+### Table of Contents
+
+- [Authentication Routes](#authentication-routes)
+  - [`POST /auth/create`](#post-authcreate)
+  - [`POST /auth/login`](#post-authlogin)
+  - [`POST /auth/logout`](#post-authlogout)
+- [API Routes](#api-routes)
+  - [`POST /api/search`](#post-apisearch)
+  - [`GET /api/game/:id`](#get-apigameid)
+- [User Routes](#user-routes)
+  - [`GET /users/search?term=`](#get-userssearchterm)
+  - [`PUT /users/update`](#put-usersupdate)
+  - [`GET /users/current`](#get-userscurrent)
+- [User Game Routes](#user-game-routes)
+  - [`GET /usergames/add`](#get-usergamesadd)
+  - [`GET /usergames/:username`](#get-usergamesusername)
+- [Review Routes](#review-routes)
+
+
+### Authentication Routes
+
 ### `POST /auth/create`
 
 **Description:** Create new user account. On success, logs the user in to the newly created account and sets auth token in their cookies.
@@ -192,6 +213,8 @@ No body is returned, auth token is cleared in user's cookies and revoked in serv
 }
 ````
 
+### API Routes
+
 ### `POST /api/search`
 
 **Description:** Searches IGDB for games based on the provided search term.
@@ -308,6 +331,8 @@ None
     "error": "Please try again"
 }
 ```
+
+### User Routes
 
 ### `GET /users/search?term=`
 
@@ -448,6 +473,8 @@ token - authentication token
 }
 ```
 
+### User Game Routes
+
 ### `GET /usergames/add`
 
 **Description:** Add a game to the authenticated user's game list.
@@ -500,6 +527,56 @@ No body is returned, game is added to user list.
 ```json
 {
     "error": "Forbidden."
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+    "error": "Internal server error."
+}
+```
+
+### `GET /usergames/:username`
+
+**Description:** Get the game list for a specific user.
+
+**Path Parameters:**
+
+```
+username - The username of the user whose game list to fetch.
+```
+
+**Body:**
+
+```
+None
+```
+
+**Responses:**
+
+**200 OK**
+
+```json
+{
+    [
+        {
+            "game_id": 120278,
+            "rating": 10,
+            "status": "playing",
+            "favorited": true,
+            "hours_played": 50
+        }
+    ]
+}
+```
+
+**404 Not Found** - User not found.
+
+```json
+{
+    "error": "User not found."
 }
 ```
 

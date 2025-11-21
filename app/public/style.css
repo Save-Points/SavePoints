@@ -22,6 +22,36 @@ h1 {
     margin-bottom: 8px;
 }
 
+.centered {
+    text-align: center;
+    margin: 0 auto;
+}
+
+.centered-table {
+    border: 1px solid black;
+    border-collapse: collapse;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.sorter {
+    cursor: pointer;
+    color: blue;
+    text-decoration: underline;
+}
+
+.sorter:hover {
+    color: lightblue;
+}
+
+th.sort-asc::after {
+    content: ' ▲';
+}
+
+th.sort-desc::after {
+    content: ' ▼';
+}
+
 .auth-button {
     background: white;
     border: 1px solid black;
@@ -369,4 +399,16 @@ h1 {
 
 .number-input {
     width: 50px;
+}
+
+#gamesTable th, td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+#gamesTable a img {
+    display: block;
+    margin: 0 auto;
+    width: 50px;
+    height: auto;
 }
