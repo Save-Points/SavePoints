@@ -258,7 +258,7 @@ searchButton.addEventListener('click', () => {
                                     username.className = 'username';
 
                                     card.addEventListener('click', () => {
-                                        window.location.href = `profile.html?username=${user.username}`;
+                                        window.location.href = `/profile/${user.username}`;
                                     });
                                     card.appendChild(img);
                                     card.appendChild(username);
