@@ -75,7 +75,7 @@ checkLogin().then((user) => {
     if (user) {
         userReviewSection.style.display = 'block';
         loginNotice.style.display = 'none';
-        loadUserReview();
+        // loadUserReview();
     } else {
         userReviewSection.style.display = 'none';
         loginNotice.style.display = 'block';
@@ -109,17 +109,17 @@ function loadReviews() {
 
 loadReviews();
 
-function loadUserReview() {
-    fetch(`/reviews/${gameId}/user`)
-        .then((r) => r.json())
-        .then((review) => {
-            if (review) {
-                document.getElementById('ratingInput').value = review.rating;
-                document.getElementById('reviewText').value =
-                    review.review_text || '';
-            }
-        });
-}
+// function loadUserReview() {
+//     fetch(`/reviews/${gameId}/user`)
+//         .then((r) => r.json())
+//         .then((review) => {
+//             if (review) {
+//                 document.getElementById('ratingInput').value = review.rating;
+//                 document.getElementById('reviewText').value =
+//                     review.review_text || '';
+//             }
+//         });
+// }
 
 document.getElementById('submitReview').addEventListener('click', async () => {
     const rating = document.getElementById('ratingInput').value;
