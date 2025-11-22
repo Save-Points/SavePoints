@@ -7,6 +7,8 @@ import reviewsRoutes from './routes/reviewsRoutes.js';
 import apiRoutes from './routes/apiRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getTwitchToken } from '../middleware/token.js';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -35,4 +37,5 @@ app.get('/game', (_req, res) => {
 
 app.listen(port, hostname, () => {
     console.log(`Listening at http://${hostname}:${port}`);
+    await getTwitchToken();
 });

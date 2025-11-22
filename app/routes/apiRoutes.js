@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { injectToken } from '../middleware/token.js';
+import { injectToken, getTwitchToken } from '../middleware/token.js';
 import dotenv from 'dotenv';
 import axios from 'axios';
 
@@ -13,7 +13,7 @@ let genreToID = null;
 async function ensureGenreCache() {
     if (genreToID) return Promise.resolve(genreToID);
 
-    const accessToken = getTwitchToken();
+    const accessToken = await getTwitchToken();
 
     try {
         const headers = {
