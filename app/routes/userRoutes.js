@@ -37,7 +37,7 @@ router.get('/current', authorize, async (req, res) => {
 
     try {
         const userResult = await pool.query(
-            'SELECT username, profile_pic_url, bio, created_at FROM users WHERE id = $1',
+            'SELECT id, username, profile_pic_url, bio, created_at FROM users WHERE id = $1',
             [userId],
         );
 
@@ -45,12 +45,7 @@ router.get('/current', authorize, async (req, res) => {
             return res.status(404).json({ error: 'User not found.' });
         }
 
-        return res.status(200).json({
-            username: userResult.rows[0].username,
-            profile_pic_url: userResult.rows[0].profile_pic_url,
-            bio: userResult.rows[0].bio,
-            created_at: userResult.rows[0].created_at
-        });
+        return res.status(200).json(userResult.rows[0]);
     } catch (error) {
         return res.status(500).json({ error: 'Internal server error.' });
     }
@@ -68,6 +63,25 @@ router.put('/update', authorize, async (req, res) => {
         res.status(200).json({ message: 'Updated successfully' });
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+router.get('/view/:username', async (req, res) => {
+    const { username } = req.params;
+    try {
+        const result = await pool.query(
+            'SELECT id, username, bio, profile_pic_url, created_at FROM users WHERE LOWER(username) = LOWER($1)',
+            [username]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        res.status(200).json(result.rows[0]);
+    } catch (error) {
+        console.error(`GET /view/${username} failed:`, error);
+        res.status(500).json({ error: 'Internal server error.' });
     }
 });
 

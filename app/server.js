@@ -2,9 +2,10 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import reviewsRoutes from './routes/reviewsRoutes.js';
+import friendRoutes from './routes/friendRoutes.js';
 import dotenv from 'dotenv';
 import axios from 'axios';
-import reviewsRoutes from './routes/reviewsRoutes.js';
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 
 app.use('/reviews', reviewsRoutes);
+app.use('/friends', friendRoutes);
 
 let CLIENT_ID = process.env.TWITCH_CLIENT_ID;
 let CLIENT_SECRET = process.env.TWITCH_CLIENT_SECRET;
