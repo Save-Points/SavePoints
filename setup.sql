@@ -2,7 +2,7 @@ CREATE DATABASE savepoints;
 \c savepoints;
 
 CREATE TYPE privacy_type AS ENUM('public', 'private', 'friends_only');
-
+CREATE TYPE friend_status AS ENUM ('pending', 'accepted');
 CREATE TYPE user_game_status AS ENUM('completed', 'playing', 'planned', 'wishlisted', 'dropped', 'on_hold');
 
 CREATE OR REPLACE FUNCTION update_updated_at()
@@ -72,3 +72,16 @@ CREATE TABLE user_games (
 );
 
 CREATE TRIGGER set_user_games_updated_at BEFORE UPDATE ON user_games FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TABLE friends (
+    id SERIAL PRIMARY KEY,
+    requester_id INT REFERENCES users(id) ON DELETE CASCADE,
+    receiver_id INT REFERENCES users(id) ON DELETE CASCADE,
+    status friend_status DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(requester_id, receiver_id),
+    CHECK (requester_id != receiver_id)
+);
+
+-- TODO: Notifications for friends (was thinking add a table so we can do messages, etc)? 

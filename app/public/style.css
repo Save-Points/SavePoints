@@ -288,11 +288,15 @@ th.sort-desc::after {
 }
 
 .user-card {
-    display: inline-flex;
+display: inline-flex;
     align-items: center;
+    gap: 10px;
     margin: 10px;
     cursor: pointer;
-    border: 1px solid black;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #fff;
 }
 
 .user-profile-pic {
@@ -411,4 +415,65 @@ th.sort-desc::after {
     margin: 0 auto;
     width: 50px;
     height: auto;
+}
+
+
+.friend-action-btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    border: none;
+    margin-top: 10px;
+}
+
+.btn-blue {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-gray {
+    background-color: #ccc;
+    color: #666;
+    cursor: default;
+}
+
+.btn-green {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-outline-green {
+    background-color: transparent;
+    color: green;
+    border: 1px solid green;
+    cursor: default;
+}
+
+.btn-red {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-red:hover {
+    background-color: #c82333;
+}
+
+.friend-badge {
+    display: inline-block;
+    padding: 8px 12px;
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    border-radius: 4px;
+    font-weight: bold;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.friend-actions-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
 }
