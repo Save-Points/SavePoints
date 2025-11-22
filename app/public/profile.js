@@ -1,37 +1,71 @@
 async function checkFriendStatus(targetUserId) {
     const actionArea = document.getElementById('friendActionArea');
-    if (!actionArea) return;
+    if (!actionArea) {
+        return;
+    }
 
     try {
         const res = await fetch(`/friends/status/${targetUserId}`);
         if (!res.ok) {
             return;
         } 
-    
+
         const data = await res.json();
         actionArea.textContent = '';
-
-        if (data.status === 'self') return; 
+        if (data.status === 'self') {
+            return;
+        }
 
         const btn = document.createElement('button');
-        btn.className = 'friend-action-btn';
+        btn.className = 'friend-action-btn'; 
 
         if (data.status === 'none') {
             btn.textContent = 'Add Friend';
             btn.classList.add('btn-blue');
             btn.onclick = () => sendFriendRequest(targetUserId);
         } else if (data.status === 'sent') {
-            btn.textContent = 'Request Sent';
-            btn.disabled = true;
-            btn.classList.add('btn-gray');
+            btn.textContent = 'Cancel Request';
+            btn.classList.add('btn-red');
+            btn.onclick = () => removeConnection(targetUserId);
+
         } else if (data.status === 'received') {
-            btn.textContent = 'Accept Request';
-            btn.classList.add('btn-green');
-            btn.onclick = () => acceptFriendRequest(targetUserId); 
+            const wrapper = document.createElement('div');
+            wrapper.style.display = 'flex';
+            wrapper.style.gap = '10px';
+            
+            const acceptBtn = document.createElement('button');
+            acceptBtn.className = 'friend-action-btn btn-green';
+            acceptBtn.textContent = 'Accept';
+            acceptBtn.onclick = () => acceptFriendRequest(targetUserId);
+
+            const declineBtn = document.createElement('button');
+            declineBtn.className = 'friend-action-btn btn-red';
+            declineBtn.textContent = 'Decline';
+            declineBtn.onclick = () => removeConnection(targetUserId);
+
+            wrapper.appendChild(acceptBtn);
+            wrapper.appendChild(declineBtn);
+            actionArea.appendChild(wrapper);
+            return;
+
         } else if (data.status === 'friends') {
-            btn.textContent = 'Friends';
-            btn.disabled = true;
-            btn.classList.add('btn-outline-green');
+            const wrapper = document.createElement('div');
+            wrapper.className = 'friend-actions-wrapper';
+
+            const badge = document.createElement('span');
+            badge.className = 'friend-badge';
+            badge.textContent = 'Friends';
+
+            const unfriendBtn = document.createElement('button');
+            unfriendBtn.className = 'friend-action-btn btn-red';
+            unfriendBtn.textContent = 'Unfriend';
+            unfriendBtn.style.marginTop = '0';
+            unfriendBtn.onclick = () => removeConnection(targetUserId);
+
+            wrapper.appendChild(badge);
+            wrapper.appendChild(unfriendBtn);
+            actionArea.appendChild(wrapper);
+            return;
         }
 
         actionArea.appendChild(btn);
@@ -71,6 +105,25 @@ async function acceptFriendRequest(requesterId) {
     }
 }
 
+async function removeConnection(targetId) {
+    if (!confirm("Are you sure?")) return;
+
+    try {
+        const res = await fetch(`/friends/${targetId}`, {
+            method: 'DELETE',
+        });
+        if (res.ok) {
+            checkFriendStatus(targetId); 
+             const container = document.getElementById('friendsContainer');
+             if (container && container.children.length > 0) {
+                 window.location.reload();
+             }
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
 async function loadFriends(userId) {
     const container = document.getElementById('friendsContainer');
     try {
@@ -90,7 +143,7 @@ async function loadFriends(userId) {
         friends.forEach(friend => {
             const div = document.createElement('div');
             div.className = 'user-card';
-            div.onclick = () => window.location.href = `profile.html?username=${friend.username}`;
+            div.onclick = () => window.location.href = `/profile/${friend.username}`;
 
             const img = document.createElement('img');
             img.src = friend.profile_pic_url || '/images/default_profile_pic.jpg';
@@ -112,8 +165,8 @@ async function loadFriends(userId) {
 }
 
 async function loadProfile() {
-    const params = new URLSearchParams(window.location.search);
-    const usernameParam = params.get('username'); 
+    const pathParts = window.location.pathname.split('/'); 
+    let usernameParam = pathParts[2];
 
     let endpoint = '/users/current';
     if (usernameParam) {
@@ -132,7 +185,7 @@ async function loadProfile() {
             document.getElementById('username').textContent = "User not found";
             document.getElementById('bio').style.display = 'none';
             
-            const settingsBtn = document.querySelector('a[href="settings.html"]');
+            const settingsBtn = document.querySelector('a[href="/settings.html"]');
             if(settingsBtn) settingsBtn.classList.add('hidden');
             return;
         }
@@ -142,7 +195,7 @@ async function loadProfile() {
         // Check if its the user themselves (hides settings button etc.)
         try {
             const meRes = await fetch('/users/current');
-            const settingsBtn = document.querySelector('a[href="settings.html"]');
+            const settingsBtn = document.querySelector('a[href="/settings.html"]');
 
             if (meRes.ok) {
                 const me = await meRes.json();

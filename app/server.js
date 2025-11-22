@@ -33,6 +33,10 @@ app.get('/gamelist/:username', (_req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'gameList.html'));
 });
 
+app.get('/profile/:username', (_req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'profile.html'));
+});
+
 app.get('/game', (_req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'game.html'));
 });

@@ -75,6 +75,24 @@ router.post('/accept', authorize, async (req, res) => {
     }
 });
 
+router.delete('/:targetId', authorize, async (req, res) => {
+    const myId = req.user.id;
+    const targetId = parseInt(req.params.targetId);
+
+    try {
+        await pool.query(
+            `DELETE FROM friends 
+             WHERE (requester_id = $1 AND receiver_id = $2) 
+                OR (requester_id = $2 AND receiver_id = $1)`,
+            [myId, targetId]
+        );
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Friend remove error', error);
+        res.status(500).json({ error: 'Failed to remove friend' });
+    }
+});
+
 router.get('/list/:userId', async (req, res) => {
     const userId = parseInt(req.params.userId);
 
