@@ -5,6 +5,8 @@ CREATE TYPE privacy_type AS ENUM('public', 'private', 'friends_only');
 CREATE TYPE friend_status AS ENUM ('pending', 'accepted');
 CREATE TYPE user_game_status AS ENUM('completed', 'playing', 'planned', 'wishlisted', 'dropped', 'on_hold');
 
+CREATE TYPE vote_type AS ENUM('upvote', 'downvote');
+
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -47,12 +49,47 @@ CREATE TABLE reviews (
     review_text TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE(user_id, game_id)
+    deleted_at TIMESTAMP DEFAULT NULL,
+    UNIQUE(user_id, game_id, deleted_at)
 );
 
 CREATE TRIGGER update_reviews_updated_at
 BEFORE UPDATE ON reviews
 FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TABLE review_replies (
+    id SERIAL PRIMARY KEY,
+    review_id INT REFERENCES reviews(id) ON DELETE CASCADE,
+    parent_id INT REFERENCES review_replies(id) ON DELETE CASCADE,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    game_id INT NOT NULL,
+    reply_text TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    deleted_at TIMESTAMP DEFAULT NULL
+);
+
+CREATE TRIGGER update_review_replies_updated_at
+BEFORE UPDATE ON review_replies
+FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TABLE review_votes (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    review_id INT REFERENCES reviews(id) ON DELETE CASCADE,
+    vote vote_type NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(user_id, review_id)
+);
+
+CREATE TABLE reply_votes (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    reply_id INT REFERENCES review_replies(id) ON DELETE CASCADE,
+    vote vote_type NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(user_id, reply_id)
+);
 
 CREATE TABLE custom_games (
     id SERIAL PRIMARY KEY -- todo: rest of this table, currently here so user_games can reference
