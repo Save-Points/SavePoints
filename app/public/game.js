@@ -122,13 +122,12 @@ loadReviews();
 // }
 
 document.getElementById('submitReview').addEventListener('click', async () => {
-    const rating = document.getElementById('ratingInput').value;
     const review_text = document.getElementById('reviewText').value;
 
     const res = await fetch(`/reviews/${gameId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rating, review_text }),
+        body: JSON.stringify({ review_text }),
     });
 
     if (res.ok) {
