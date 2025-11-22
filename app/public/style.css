@@ -18,6 +18,40 @@ h1 {
     display: none;
 }
 
+.input {
+    margin-bottom: 8px;
+}
+
+.centered {
+    text-align: center;
+    margin: 0 auto;
+}
+
+.centered-table {
+    border: 1px solid black;
+    border-collapse: collapse;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.sorter {
+    cursor: pointer;
+    color: blue;
+    text-decoration: underline;
+}
+
+.sorter:hover {
+    color: lightblue;
+}
+
+th.sort-asc::after {
+    content: ' ▲';
+}
+
+th.sort-desc::after {
+    content: ' ▼';
+}
+
 .auth-button {
     background: white;
     border: 1px solid black;
@@ -291,4 +325,90 @@ h1 {
     width: 100%;
     display: block;
     margin-bottom: 10px;
+}
+.game-info-container {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+#cover {
+    width: 250px;
+    height: auto;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.details-grid {
+    flex-grow: 1;
+}
+
+.details-grid p {
+    margin-bottom: 8px;
+}
+
+#gameInfo #name {
+    margin-bottom: 20px;
+}
+
+.add-button {
+    background: white;
+    cursor: pointer;
+    padding: 8px 12px;
+    display: block;
+    margin-top: 10px;
+    border: none;
+    border-bottom: 1px solid blue;
+    color: blue;
+}
+
+.add-button:hover {
+    background: lightgray;
+}
+
+.cover-and-add {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#userGameAdd {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.75s ease-out;
+}
+
+#userGameAdd.show {
+    max-height: 500px;
+}
+
+.number-input {
+    width: 50px;
+}
+
+#gamesTable th, #gamesTable td {
+    text-align: center;
+    vertical-align: middle;
+}
+
+#gamesTable a img {
+    display: block;
+    margin: 0 auto;
+    width: 50px;
+    height: auto;
 }

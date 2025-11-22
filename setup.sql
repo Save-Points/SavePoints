@@ -3,6 +3,8 @@ CREATE DATABASE savepoints;
 
 CREATE TYPE privacy_type AS ENUM('public', 'private', 'friends_only');
 
+CREATE TYPE user_game_status AS ENUM('completed', 'playing', 'planned', 'wishlisted', 'dropped', 'on_hold');
+
 CREATE OR REPLACE FUNCTION update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -32,7 +34,7 @@ CREATE TRIGGER set_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE 
 CREATE TABLE auth_tokens (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id),
-    token CHAR(64),
+    token CHAR(64) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP + INTERVAL '7 days'),
     revoked BOOLEAN DEFAULT false
@@ -42,7 +44,6 @@ CREATE TABLE reviews (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
     game_id INT NOT NULL,
-    rating INT CHECK (rating >= 1 AND rating <= 10),
     review_text TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
@@ -52,3 +53,22 @@ CREATE TABLE reviews (
 CREATE TRIGGER update_reviews_updated_at
 BEFORE UPDATE ON reviews
 FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TABLE custom_games (
+    id SERIAL PRIMARY KEY -- todo: rest of this table, currently here so user_games can reference
+);
+
+CREATE TABLE user_games (
+    user_id INT REFERENCES users(id) NOT NULL,
+    game_id INT NOT NULL,
+    -- custom_game_id INT REFERENCES custom_games(id) DEFAULT NULL,
+    rating NUMERIC(4, 2) CHECK (rating >= 0 AND rating <= 10) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT NULL,
+    status user_game_status DEFAULT 'planned',
+    favorited BOOLEAN DEFAULT FALSE,
+    hours_played INT DEFAULT 0,
+    PRIMARY KEY (user_id, game_id)
+);
+
+CREATE TRIGGER set_user_games_updated_at BEFORE UPDATE ON user_games FOR EACH ROW EXECUTE FUNCTION update_updated_at();

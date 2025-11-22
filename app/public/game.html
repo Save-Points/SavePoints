@@ -10,23 +10,86 @@
         <h1>Game Review Page</h1>
         <p id="gameInfo"></p>
 
-        <h2>Write A Review</h2>
-        <div id="userReviewSection" style="display: none">
-            <label>Rating (1–10):</label>
-            <input type="number" id="ratingInput" min="1" max="10" />
-            <br /><br />
-            <textarea
-                id="reviewText"
-                placeholder="Write your review here..."
-                style="width: 100%; height: 200px; resize: vertical"
-            ></textarea>
-            <br />
-            <button id="submitReview">Submit Review</button>
+        <p id="gameInfo">
+            <h2 id="name"></h2>
+            <div class="game-info-container">
+                <div class="cover-add">
+                    <img id="cover" />
+                    <a id="addToList" class="add-button">Add to List</a>
+                </div>
+                <div class="details-grid">
+                    <p class="label"><strong>Rating:</strong></p>
+                    <p id="gameRating"></p>
+
+                    <p class="label"><strong>Release Date:</strong></p>
+                    <p id="releaseDate"></p>
+
+                    <p class="label"><strong>Platforms:</strong></p>
+                    <p id="platforms"></p>
+
+                    <p class="label"><strong>Genres:</strong></p>
+                    <p id="genres"></p>
+
+                    <p class="label"><strong>Summary:</strong></p>
+                    <p id="summary"></p>
+                </div>
+                
+            </div>
+        </p>
+
+        <div id="userGameAdd">
+            <table>
+                <tbody>
+                    <tr>
+                        <td>Status:</td>
+                        <td>
+                            <select id="status" name="status">
+                                <option value ="planned">Planned</option>
+                                <option value ="completed">Completed</option>
+                                <option value ="playing">Playing</option>
+                                <option value ="on_hold">On Hold</option>
+                                <option value ="wishlisted">Wishlisted</option>
+                                <option value ="dropped">Dropped</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Hours Played:</td>
+                        <td>
+                            <input type="text" inputmode="decimal" class="number-input" id="hoursPlayed" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Rating:</td>
+                        <td>
+                            <input type="text" inputmode="decimal" class="number-input" id="userRating" />
+                            /
+                            <span>10</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><button id="submit" class="auth-button">Add</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="hidden" id="message"></div>
         </div>
 
-        <h2>Community Reviews</h2>
-        <div id="reviewsList"></div>
+        <h2>Write A Review</h2>
+            <div id="userReviewSection" style="display: none">
+                <br /><br />
+                <textarea
+                    id="reviewText"
+                    placeholder="Write your review here..."
+                    style="width: 100%; height: 200px; resize: vertical"
+                ></textarea>
+                <br />
+                <button id="submitReview">Submit Review</button>
+            </div>
 
+        <h2>Community Reviews</h2>
+            <div id="reviewsList"></div>
+        
         <script src="game.js"></script>
     </body>
 </html>
