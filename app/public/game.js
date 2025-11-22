@@ -2,9 +2,7 @@ const params = new URLSearchParams(window.location.search);
 const gameId = params.get('id');
 
 const gameInfoDiv = document.getElementById('gameInfo');
-const userReviewSection = document.getElementById('userReviewSection');
-const loginNotice = document.getElementById('loginNotice');
-const reviewsList = document.getElementById('reviewsList');
+
 const gameHeader = document.getElementById('name');
 const gameCover = document.getElementById('cover');
 const gameRating = document.getElementById('gameRating');
@@ -21,6 +19,12 @@ const gameStatus = document.getElementById('status');
 const hoursPlayed = document.getElementById('hoursPlayed');
 const userRating = document.getElementById('userRating');
 const messageDiv = document.getElementById('message');
+
+const userReviewSection = document.getElementById('userReviewSection');
+const reviewsList = document.getElementById('reviewsList');
+const submitReviewBtn = document.getElementById('submitReview');
+
+let currentUser = null;
 
 if (gameId) {
     fetch(`/api/game/${gameId}`)
@@ -65,63 +69,163 @@ async function checkLogin() {
     const res = await fetch('/users/current');
     if (res.ok) {
         const data = await res.json();
+        currentUser = data;
         return data;
     } else {
+        currentUser = null;
         return null;
     }
 }
 
-checkLogin().then((user) => {
-    if (user) {
-        userReviewSection.style.display = 'block';
-        loginNotice.style.display = 'none';
-        // loadUserReview();
-    } else {
-        userReviewSection.style.display = 'none';
-        loginNotice.style.display = 'block';
+// Checks if the user already have an active (not deleted) review for this game
+async function hasActiveReview() {
+    try {
+        const res = await fetch(`/reviews/${gameId}/user`);
+        if (!res.ok) return false;
+        const review = await res.json();
+        return Boolean(review);
+    } catch (error) {
+        return false;
     }
-});
+}
+
+async function setupReviewBox() {
+    const user = await checkLogin();
+    if (!user) {
+        userReviewSection.style.display = 'none';
+        return;
+    }
+
+    const hasReview = await hasActiveReview();
+    userReviewSection.style.display = hasReview ? 'none' : 'block';
+}
+
+// This is a helper that renders the reviews and the replies for the render functions
+function escapeHtml(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+// This is a recursive renderer for a reply (makes it so there is indentation based on depth)
+function renderReply(reply, depth) {
+    const indent = depth * 20;
+
+    const isOwner = currentUser && currentUser.username === reply.username;
+    const edited = reply.updated_at && reply.updated_at !== reply.created_at;
+
+    return `
+        <div class="review-card" style="margin-left: ${indent}px" data-reply-id="${reply.id}">
+            <div class="review-header-line">
+                <strong>${escapeHtml(reply.username)}</strong>
+                <span class="review-meta">
+                    <small>${new Date(reply.created_at).toLocaleString()}</small>
+                    ${edited ? `<small> • Edited at ${new Date(reply.updated_at).toLocaleString()}</small>` : ""}
+                </span>
+            </div>
+            <p>${escapeHtml(reply.display_text)}</p>
+            <div class="review-actions">
+                <button class="vote-btn" data-action="reply-upvote" data-reply-id="${reply.id}">▲ ${reply.upvotes}</button>
+                <button class="vote-btn" data-action="reply-downvote" data-reply-id="${reply.id}">▼ ${reply.downvotes}</button>
+                <button class="small-btn" data-action="reply-reply" data-reply-id="${reply.id}">Reply</button>
+                ${isOwner ? `<button class="small-btn" data-action="reply-edit" data-reply-id="${reply.id}">Edit</button>` : "" }
+                ${isOwner ? `<button class="small-btn" data-action="reply-delete" data-reply-id="${reply.id}">Delete</button>` : "" }
+            </div>
+
+            <div class="reply-input hidden" data-parent-reply="${reply.id}">
+                <textarea class="reply-textarea" placeholder="Reply..."></textarea>
+                <br />
+                <button class="small-btn" data-action="send-nested-reply" data-parent-reply="${reply.id}" data-review-id="${reply.review_id}">
+                    Post Reply
+                </button>
+            </div>
+            <div class="reply-edit hidden" data-reply-id="${reply.id}">
+                <textarea class="reply-edit-textarea">${escapeHtml(reply.display_text)}</textarea>
+                <br>
+                <button class="small-btn" data-action="save-reply-edit" data-reply-id="${reply.id}">Save</button>
+                <button class="small-btn" data-action="cancel-reply-edit" data-reply-id="${reply.id}">Cancel</button>
+            </div>
+
+            ${reply.replies.map(child => renderReply(child, depth + 1)).join('')}
+        </div>
+    `;
+}
+
+
+// Renders a top level review and its replies
+function renderReview(review) {
+    const isOwner =
+        currentUser && currentUser.username === review.username;
+
+    const edited =
+        review.updated_at && review.updated_at !== review.created_at;
+
+    const ratingText =
+        review.rating !== null && review.rating !== undefined ? `${Number(review.rating).toFixed(1)}` : 'N/A';
+
+    return `
+        <div class="review-card" data-review-id="${review.id}">
+            <div class="review-header-line">
+                <strong>${escapeHtml(review.username)}</strong>
+                <span> — Rating: ${ratingText}/10</span>
+            </div>
+
+            <div class="review-meta">
+                <small>${new Date(review.created_at).toLocaleString()}</small>
+                ${edited ? `<small> • Edited at ${new Date(review.updated_at,).toLocaleString()}</small>` : ''}
+            </div>
+            <p>${escapeHtml(review.display_text)}</p>
+            <div class="review-actions">
+                <button class="vote-btn" data-action="review-upvote" data-review-id="${review.id}">▲ ${review.upvotes}</button>
+                <button class="vote-btn" data-action="review-downvote" data-review-id="${review.id}">▼ ${review.downvotes}</button>
+                <button class="small-btn" data-action="review-reply" data-review-id="${review.id}">Reply</button>${isOwner ? `
+                    <button class="small-btn" data-action="review-edit" data-review-id="${review.id}">Edit</button>
+                    <button class="small-btn" data-action="review-delete" data-review-id="${review.id}">Delete</button>` : ''}
+            </div>
+
+            <div class="edit-input hidden" data-review-id="${review.id}">
+                <textarea class="edit-textarea">${escapeHtml(review.display_text,)}</textarea>
+                <br />
+                <button class="small-btn" data-action="save-edit" data-review-id="${review.id}">Save</button>
+                <button class="small-btn" data-action="cancel-edit" data-review-id="${review.id}">Cancel</button>
+            </div>
+
+            <div class="reply-input hidden" data-review-id="${review.id}">
+                <textarea class="reply-textarea" placeholder="Reply..."></textarea>
+                <br />
+                <button class="small-btn" data-action="send-reply" data-review-id="${review.id}">Post Reply</button>
+            </div>
+
+            ${review.replies.map((rep) => renderReply(rep, 1)).join('')}
+        </div>
+    `;
+}
 
 function loadReviews() {
     fetch(`/reviews/${gameId}`)
         .then((r) => r.json())
         .then((reviews) => {
-            const container = document.getElementById('reviewsList');
-
-            if (!reviews.length) {
-                container.innerHTML = '<p>No reviews yet.</p>';
+            if (!Array.isArray(reviews)) {
+                reviewsList.innerHTML = '<p>No reviews yet.</p>';
                 return;
             }
 
-            container.innerHTML = reviews
-                .map(
-                    (r) => `
-                <div class="review-card">
-                    <strong>${r.username}</strong> — <span>Rating: ${+r.rating}/10</span>
-                    <p>${r.review_text ? r.review_text : ''}</p>
-                    <small>${new Date(r.created_at).toLocaleString()}</small>
-                </div>
-            `,
-                )
-                .join('');
+            if (!reviews.length) {
+                reviewsList.innerHTML = '<p>No reviews yet.</p>';
+                return;
+            }
+
+            reviewsList.innerHTML = reviews.map(renderReview).join('');
+        })
+        .catch((error) => {
+            console.error('Error loading reviews', error);
+            reviewsList.innerHTML = '<p>Failed to load reviews.</p>';
         });
 }
 
-loadReviews();
-
-// function loadUserReview() {
-//     fetch(`/reviews/${gameId}/user`)
-//         .then((r) => r.json())
-//         .then((review) => {
-//             if (review) {
-//                 document.getElementById('ratingInput').value = review.rating;
-//                 document.getElementById('reviewText').value =
-//                     review.review_text || '';
-//             }
-//         });
-// }
-
-document.getElementById('submitReview').addEventListener('click', async () => {
+submitReviewBtn.addEventListener('click', async () => {
     const review_text = document.getElementById('reviewText').value;
 
     const res = await fetch(`/reviews/${gameId}`, {
@@ -131,9 +235,239 @@ document.getElementById('submitReview').addEventListener('click', async () => {
     });
 
     if (res.ok) {
+        document.getElementById('reviewText').value = '';
+        await setupReviewBox();
         loadReviews();
     } else {
-        alert('Failed to submit review.');
+        const body = await res.json().catch(() => ({}));
+        alert(body.error || 'Failed to submit review.');
+    }
+});
+
+reviewsList.addEventListener('click', async (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+
+    const action = btn.dataset.action;
+
+    // voting on reviews
+    if (action === 'review-upvote' || action === 'review-downvote') {
+        const reviewId = btn.dataset.reviewId;
+        const vote =
+            action === 'review-upvote' ? 'upvote' : 'downvote';
+        await fetch(`/reviews/review/${reviewId}/vote`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ vote }),
+        });
+        loadReviews();
+        return;
+    }
+
+    // voting on replies
+    if (action === 'reply-upvote' || action === 'reply-downvote') {
+        const replyId = btn.dataset.replyId;
+        const vote = action === 'reply-upvote' ? 'upvote' : 'downvote';
+        await fetch(`/reviews/reply/${replyId}/vote`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ vote }),
+        });
+        loadReviews();
+        return;
+    }
+
+    // editing a review
+    if (action === 'review-edit') {
+        const reviewId = btn.dataset.reviewId;
+        const editDiv = reviewsList.querySelector(`.edit-input[data-review-id="${reviewId}"]`,);
+        if (editDiv) {
+            editDiv.classList.remove('hidden');
+        }
+        return;
+    }
+
+    // cancelling an edit
+    if (action === 'cancel-edit') {
+        const reviewId = btn.dataset.reviewId;
+        const editDiv = reviewsList.querySelector(`.edit-input[data-review-id="${reviewId}"]`,);
+        if (editDiv) {
+            editDiv.classList.add('hidden');
+        }
+        return;
+    }
+
+    // submitting changes for edit
+    if (action === 'save-edit') {
+        const reviewId = btn.dataset.reviewId;
+        const editDiv = reviewsList.querySelector(`.edit-input[data-review-id="${reviewId}"]`,);
+        if (!editDiv) return;
+        const textarea = editDiv.querySelector('.edit-textarea');
+        const review_text = textarea.value;
+
+        const res = await fetch(`/reviews/review/${reviewId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ review_text }),
+        });
+
+        if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            alert(body.error || 'Failed to edit review.');
+            return;
+        }
+
+        editDiv.classList.add('hidden');
+        loadReviews();
+        return;
+    }
+
+    // deleting a review
+    if (action === 'review-delete') {
+        const reviewId = btn.dataset.reviewId;
+        if (!confirm('Delete your review?')) return;
+
+        const res = await fetch(`/reviews/review/${reviewId}`, {method: 'DELETE',});
+
+        if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            alert(body.error || 'Failed to delete review.');
+            return;
+        }
+
+        await setupReviewBox();
+        loadReviews();
+        return;
+    }
+
+    // replying to a review
+    if (action === 'review-reply') {
+        const reviewId = btn.dataset.reviewId;
+        const replyDiv = reviewsList.querySelector(`.reply-input[data-review-id="${reviewId}"]`,);
+        if (replyDiv) {
+            replyDiv.classList.toggle('hidden');
+        }
+        return;
+    }
+
+    // sending a reply
+    if (action === 'send-reply') {
+        const reviewId = btn.dataset.reviewId;
+        const replyDiv = reviewsList.querySelector(`.reply-input[data-review-id="${reviewId}"]`,);
+        const textarea = replyDiv.querySelector('.reply-textarea');
+        const reply_text = textarea.value;
+
+        const res = await fetch(`/reviews/review/${reviewId}/reply`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reply_text }),
+        });
+
+        if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            alert(body.error || 'Failed to post reply.');
+            return;
+        }
+
+        textarea.value = '';
+        replyDiv.classList.add('hidden');
+        loadReviews();
+        return;
+    }
+
+    // replying to a reply object
+    if (action === 'reply-reply') {
+        const replyId = btn.dataset.replyId;
+        const replyDiv = reviewsList.querySelector(`.reply-input[data-parent-reply="${replyId}"]`,);
+        if (replyDiv) {
+            replyDiv.classList.toggle('hidden');
+        }
+        return;
+    }
+
+    // sending nested replies
+    if (action === 'send-nested-reply') {
+        const parentReplyId = btn.dataset.parentReply;
+        const reviewId = btn.dataset.reviewId;
+        const replyDiv = reviewsList.querySelector(`.reply-input[data-parent-reply="${parentReplyId}"]`,);
+        const textarea = replyDiv.querySelector('.reply-textarea');
+        const reply_text = textarea.value;
+
+        const res = await fetch(`/reviews/review/${reviewId}/reply`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                reply_text,
+                parent_reply_id: Number(parentReplyId),
+            }),
+        });
+
+        if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            alert(body.error || 'Failed to post reply.');
+            return;
+        }
+
+        textarea.value = '';
+        replyDiv.classList.add('hidden');
+        loadReviews();
+        return;
+    }
+
+    // deleting a reply
+    if (action === 'reply-delete') {
+        const replyId = btn.dataset.replyId;
+        if (!confirm('Delete this reply?')) return;
+
+        const res = await fetch(`/reviews/reply/${replyId}`, { method: 'DELETE',});
+
+        if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            alert(body.error || 'Failed to delete reply.');
+            return;
+        }
+
+        loadReviews();
+        return;
+    }
+
+    // editing a reply
+    if (action === "reply-edit") {
+        const replyId = btn.dataset.replyId;
+        const editBox = reviewsList.querySelector(`.reply-edit[data-reply-id="${replyId}"]`);
+    if (editBox) editBox.classList.remove("hidden");
+        return;
+    }
+
+    // cancelling an edit for a reply
+    if (action === "cancel-reply-edit") {
+        const replyId = btn.dataset.replyId;
+        const editBox = reviewsList.querySelector(`.reply-edit[data-reply-id="${replyId}"]`);
+    if (editBox) editBox.classList.add("hidden");
+        return;
+    }
+
+    // saving an edit to a reply
+    if (action === "save-reply-edit") {
+        const replyId = btn.dataset.replyId;
+        const editBox = reviewsList.querySelector(`.reply-edit[data-reply-id="${replyId}"]`);
+        const textarea = editBox.querySelector(".reply-edit-textarea");
+        const reply_text = textarea.value;
+
+        const res = await fetch(`/reviews/reply/${replyId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reply_text })
+        });
+
+        if (!res.ok) {
+            const body = await res.json().catch(() => ({}));
+            alert(body.error || "Failed to edit reply.");
+            return;
+        }
+
+        loadReviews();
+        return;
     }
 });
 
@@ -175,3 +509,6 @@ submitButton.addEventListener('click', () => {
         }
     }))
 })
+
+setupReviewBox();
+loadReviews();
