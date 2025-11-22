@@ -401,7 +401,7 @@ th.sort-desc::after {
     width: 50px;
 }
 
-#gamesTable th, td {
+#gamesTable th, #gamesTable td {
     text-align: center;
     vertical-align: middle;
 }
