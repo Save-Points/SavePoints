@@ -57,6 +57,27 @@ npm run start
 
 ## API Endpoints
 
+### Table of Contents
+
+- [Authentication Routes](#authentication-routes)
+  - [`POST /auth/create`](#post-authcreate)
+  - [`POST /auth/login`](#post-authlogin)
+  - [`POST /auth/logout`](#post-authlogout)
+- [API Routes](#api-routes)
+  - [`POST /api/search`](#post-apisearch)
+  - [`GET /api/game/:id`](#get-apigameid)
+- [User Routes](#user-routes)
+  - [`GET /users/search?term=`](#get-userssearchterm)
+  - [`PUT /users/update`](#put-usersupdate)
+  - [`GET /users/current`](#get-userscurrent)
+- [User Game Routes](#user-game-routes)
+  - [`GET /usergames/add`](#get-usergamesadd)
+  - [`GET /usergames/:username`](#get-usergamesusername)
+- [Review Routes](#review-routes)
+
+
+### Authentication Routes
+
 ### `POST /auth/create`
 
 **Description:** Create new user account. On success, logs the user in to the newly created account and sets auth token in their cookies.
@@ -192,6 +213,8 @@ No body is returned, auth token is cleared in user's cookies and revoked in serv
 }
 ````
 
+### API Routes
+
 ### `POST /api/search`
 
 **Description:** Searches IGDB for games based on the provided search term.
@@ -308,6 +331,8 @@ None
     "error": "Please try again"
 }
 ```
+
+### User Routes
 
 ### `GET /users/search?term=`
 
@@ -448,6 +473,121 @@ token - authentication token
 }
 ```
 
+### User Game Routes
+
+### `GET /usergames/add`
+
+**Description:** Add a game to the authenticated user's game list.
+
+
+**Request Cookies:**:
+
+```
+token - authentication token
+```
+
+**Body:**
+
+```json
+{
+    "gameId": 120278,
+    "rating": 10,
+    "status": "playing",
+    "favorited": true,
+    "hoursPlayed": 50
+}
+```
+
+**Responses:**
+
+**201 Created**
+
+```
+No body is returned, game is added to user list.
+```
+
+**400 Bad Request** - Game already in user list.
+
+```json
+{
+    "error": "Game already in list."
+}
+```
+
+**401 Unauthorized** - No auth token found.
+
+```json
+{
+    "error": "No token provided."
+}
+```
+
+**403 Forbidden** - Auth token is invalid or expired.
+
+```json
+{
+    "error": "Forbidden."
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+    "error": "Internal server error."
+}
+```
+
+### `GET /usergames/:username`
+
+**Description:** Get the game list for a specific user.
+
+**Path Parameters:**
+
+```
+username - The username of the user whose game list to fetch.
+```
+
+**Body:**
+
+```
+None
+```
+
+**Responses:**
+
+**200 OK**
+
+```json
+{
+    [
+        {
+            "game_id": 120278,
+            "rating": 10,
+            "status": "playing",
+            "favorited": true,
+            "hours_played": 50
+        }
+    ]
+}
+```
+
+**404 Not Found** - User not found.
+
+```json
+{
+    "error": "User not found."
+}
+```
+
+**500 Internal Server Error**
+
+```json
+{
+    "error": "Internal server error."
+}
+```
+
 ## Database Schema
 
 ### `users` table
@@ -477,6 +617,19 @@ token - authentication token
 | created_at | TIMESTAMP   | CURRENT_TIMESTAMP                     | No       | Created at timestamp                       |
 | expires_at | TIMESTAMP   | CURRENT_TIMESTAMP + INTERVAL '7 days' | No       | Expires at timestamp (created_at + 7 days) |
 | revoked    | BOOLEAN     | false                                 | No       | Revoked status of token                    |
+
+### `user_games` table
+
+| Column       | Type             | Default                               | Nullable | Description                               |
+|--------------|------------------|---------------------------------------|----------|-------------------------------------------|
+| user_id      | INT PK           |                                       | No       | User ID, references `users(id)`                                |
+| game_id      | INT PK           |                                       | No       | IGDB Game ID                              |
+| rating       | NUMERIC(4, 2)    | NULL                                  | Yes      | User rating of the game                   |
+| created_at   | TIMESTAMP        | CURRENT_TIMESTAMP + INTERVAL '7 days' | No       | Created at timestamp                      |
+| updated_at   | TIMESTAMP        | NULL                                  | Yes      | Updated at timestamp                      |
+| status       | user_game_status | 'planned'                             | No       | User game status                          |
+| favorited    | BOOLEAN          | false                                 | No       | Whether the game is favorited by the user |
+| hours_played | INT              | 0                                     | No       | Number of hours played                    |
 
 ## User Authentication Flow
 

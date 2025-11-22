@@ -177,6 +177,8 @@ async function loadProfile() {
         const dateStr = user.created_at || Date.now();
         const date = new Date(dateStr);
         document.getElementById('joinDate').textContent = date.toLocaleDateString();
+        
+        document.getElementById('gameView').href = `/gamelist/${user.username}`
 
         if (user.id) {
             loadFriends(user.id);

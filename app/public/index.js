@@ -6,7 +6,7 @@ function fetchGenres() {
     const dropdown = document.getElementById('genreFilter');
     dropdown.innerHTML = '';
 
-    fetch('/genres')
+    fetch('/api/genres')
         .then((res) => res.json())
         .then((genres) => {
             const allOption = document.createElement('option');
@@ -49,7 +49,7 @@ document.getElementById('genreFilter').addEventListener('change', (e) => {
 
 function loadGames(reset = false) {
     if (reset) gameListIndex = 0;
-    const url = `/games?limit=10&offset=${gameListIndex}&genre=${currentGenre}`;
+    const url = `/api/games?limit=10&offset=${gameListIndex}&genre=${currentGenre}`;
     fetch(url)
         .then((res) => res.json())
         .then((data) => {
@@ -78,7 +78,7 @@ function loadGames(reset = false) {
 }
 
 function loadNewReleases() {
-    const url = `/newreleases?limit=10&offset=${gameListIndexNew}`;
+    const url = `/api/newreleases?limit=10&offset=${gameListIndexNew}`;
     fetch(url)
         .then((res) => res.json())
         .then((data) => {
