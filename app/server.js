@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import reviewsRoutes from './routes/reviewsRoutes.js';
+import replyRoutes from './routes/replyRoutes.js';
 import friendRoutes from './routes/friendRoutes.js';
 import userGameRoutes from './routes/userGameRoutes.js';
 import apiRoutes from './routes/apiRoutes.js';
@@ -27,6 +28,7 @@ app.use('/users', userRoutes);
 app.use('/usergames', userGameRoutes);
 app.use('/api', apiRoutes);
 app.use('/reviews', reviewsRoutes);
+app.use('/replies', replyRoutes);
 app.use('/friends', friendRoutes);
 
 app.get('/gamelist/:username', (_req, res) => {

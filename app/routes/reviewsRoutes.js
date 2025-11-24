@@ -126,6 +126,11 @@ router.post('/:gameId', authorize, async (req, res) => {
             'SELECT id FROM reviews WHERE user_id = $1 AND game_id = $2 AND deleted_at IS NULL',
             [userId, gameId],
         );
+
+        if (existing.rows.length > 0) {
+            return res.status(400).json({ error: 'You already have a review for this game.' });
+        }
+
         await pool.query(
             `
             INSERT INTO reviews (user_id, game_id, review_text)
@@ -142,7 +147,7 @@ router.post('/:gameId', authorize, async (req, res) => {
 });
 
 // New edit functionality for the reviews
-router.put('/review/:reviewId', authorize, async (req, res) => {
+router.put('/:reviewId', authorize, async (req, res) => {
     const userId = req.user.id;
     const reviewId = parseInt(req.params.reviewId, 10);
     const { review_text } = req.body;
@@ -152,6 +157,15 @@ router.put('/review/:reviewId', authorize, async (req, res) => {
             'SELECT user_id FROM reviews WHERE id = $1 AND deleted_at IS NULL',
             [reviewId],
         );
+
+        if (existing.rows.length === 0) {
+            return res.status(404).json({ error: 'Review not found.' });
+        }
+
+        if (existing.rows[0].user_id !== userId) {
+            return res.status(403).json({ error: 'User ID of this review does not match your User ID.' });
+        }
+
         await pool.query(
             `
             UPDATE reviews
@@ -169,12 +183,21 @@ router.put('/review/:reviewId', authorize, async (req, res) => {
 });
 
 // New deletion functionality for reviews. Instead of deleting from the database it flags the message ass deleted (soft deletion)
-router.delete('/review/:reviewId', authorize, async (req, res) => {
+router.delete('/:reviewId', authorize, async (req, res) => {
     const userId = req.user.id;
     const reviewId = parseInt(req.params.reviewId, 10);
 
     try {
         const existing = await pool.query('SELECT user_id FROM reviews WHERE id = $1 AND deleted_at IS NULL', [reviewId],);
+        
+        if (existing.rows.length === 0) {
+            return res.status(404).json({ error: 'Review not found.' });
+        }
+
+        if (existing.rows[0].user_id !== userId) {
+            return res.status(403).json({ error: 'User ID of this review does not match your User ID.' });
+        }
+
         await pool.query(
             'UPDATE reviews SET deleted_at = NOW() WHERE id = $1;',
             [reviewId],
@@ -187,10 +210,14 @@ router.delete('/review/:reviewId', authorize, async (req, res) => {
 });
 
 // This creates the replies, either for under reviews or for under other replies
-router.post('/review/:reviewId/reply', authorize, async (req, res) => {
+router.post('/:reviewId/reply', authorize, async (req, res) => {
     const userId = req.user.id;
     const reviewId = parseInt(req.params.reviewId, 10);
     const { reply_text, parent_reply_id } = req.body;
+
+    if (!reviewId || Number.isNaN(reviewId)) {
+        return res.status(400).json({ error: 'Invalid review id.' });
+    }
 
     try {
         const reviewRow = await pool.query(
@@ -198,10 +225,21 @@ router.post('/review/:reviewId/reply', authorize, async (req, res) => {
             [reviewId],
         );
 
+        if (reviewRow.rows.length === 0) {
+            return res.status(404).json({ error: 'Review not found.' });
+        }
+
         const gameId = reviewRow.rows[0].game_id;
 
         let parentId = null;
         if (parent_reply_id) {
+            const pr = await pool.query(
+                'SELECT id FROM review_replies WHERE id = $1 AND review_id = $2',
+                [parent_reply_id, reviewId],
+            );
+            if (pr.rows.length === 0) {
+                return res.status(400).json({ error: 'Invalid parent reply.' });
+            }
             parentId = parent_reply_id;
         }
 
@@ -220,62 +258,19 @@ router.post('/review/:reviewId/reply', authorize, async (req, res) => {
     }
 });
 
-// Similar to review deletion but for a reply, with some changed logic as a reply card can never be deleted no matter what
-router.delete('/reply/:replyId', authorize, async (req, res) => {
-    const userId = req.user.id;
-    const replyId = parseInt(req.params.replyId, 10);
-
-    try {
-        const existing = await pool.query(
-            'SELECT user_id FROM review_replies WHERE id = $1 AND deleted_at IS NULL',
-            [replyId],
-        );
-
-        await pool.query(
-            'UPDATE review_replies SET deleted_at = NOW() WHERE id = $1;',
-            [replyId],
-        );
-
-        return res.status(200).json({ success: true });
-    } catch (error) {
-        console.error('Reply delete error', error);
-        return res.status(500).json({ error: 'Failed to delete reply.' });
-    }
-});
-
-// reply editing functionality
-router.put('/reply/:replyId', authorize, async (req, res) => {
-    const userId = req.user.id;
-    const replyId = parseInt(req.params.replyId, 10);
-    const { reply_text } = req.body;
-
-    try {
-        const existing = await pool.query(
-            'SELECT user_id FROM review_replies WHERE id = $1 AND deleted_at IS NULL',
-            [replyId],
-        );
-
-        await pool.query(
-            `
-            UPDATE review_replies
-            SET reply_text = $1, updated_at = NOW()
-            WHERE id = $2;
-            `,
-            [reply_text || '', replyId],
-        );
-
-        return res.status(200).json({ success: true });
-    } catch (error) {
-        console.error('Reply update error', error);
-        return res.status(500).json({ error: 'Failed to update reply.' });
-    }
-});
-
 // Review voting
-router.post('/review/:reviewId/vote', authorize, async (req, res) => {
+router.post('/:reviewId/vote', authorize, async (req, res) => {
     const userId = req.user.id;
     const reviewId = parseInt(req.params.reviewId, 10);
     const { vote } = req.body;
+
+    if (!reviewId || Number.isNaN(reviewId)) {
+        return res.status(400).json({ error: 'Invalid review id.' });
+    }
+
+    if (!['upvote', 'downvote', 'none'].includes(vote)) {
+        return res.status(400).json({ error: 'Invalid vote.' });
+    }
 
     try {
         if (vote === 'none') {
@@ -302,40 +297,13 @@ router.post('/review/:reviewId/vote', authorize, async (req, res) => {
     }
 });
 
-// Reply voting
-router.post('/reply/:replyId/vote', authorize, async (req, res) => {
-    const userId = req.user.id;
-    const replyId = parseInt(req.params.replyId, 10);
-    const { vote } = req.body;
-
-    try {
-        if (vote === 'none') {
-            await pool.query(
-                'DELETE FROM reply_votes WHERE user_id = $1 AND reply_id = $2',
-                [userId, replyId],
-            );
-        } else {
-            await pool.query(
-                `
-                INSERT INTO reply_votes (user_id, reply_id, vote)
-                VALUES ($1, $2, $3)
-                ON CONFLICT (user_id, reply_id)
-                DO UPDATE SET vote = EXCLUDED.vote;
-                `,
-                [userId, replyId, vote],
-            );
-        }
-
-        return res.status(200).json({ success: true });
-    } catch (error) {
-        console.error('Reply vote error', error);
-        return res.status(500).json({ error: 'Failed to vote on reply.' });
-    }
-});
-
 // This gets all of the reviews with nested replies (Important as reviews with nested replies have a different deletion method than those without replies)
 router.get('/:gameId', async (req, res) => {
     const gameId = parseInt(req.params.gameId, 10);
+
+    if (!gameId || Number.isNaN(gameId)) {
+        return res.status(400).json({ error: 'Invalid game id.' });
+    }
 
     try {
         const tree = await getReviewsTree(gameId);
@@ -350,6 +318,10 @@ router.get('/:gameId', async (req, res) => {
 router.get('/:gameId/user', authorize, async (req, res) => {
     const gameId = parseInt(req.params.gameId, 10);
     const userId = req.user.id;
+
+    if (!gameId || Number.isNaN(gameId)) {
+        return res.status(400).json({ error: 'Invalid game id.' });
+    }
 
     try {
         const result = await pool.query(

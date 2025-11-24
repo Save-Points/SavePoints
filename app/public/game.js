@@ -250,222 +250,139 @@ reviewsList.addEventListener('click', async (e) => {
 
     const action = btn.dataset.action;
 
-    // voting on reviews
-    if (action === 'review-upvote' || action === 'review-downvote') {
-        const reviewId = btn.dataset.reviewId;
-        const vote =
-            action === 'review-upvote' ? 'upvote' : 'downvote';
-        await fetch(`/reviews/review/${reviewId}/vote`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+    // voting on reviews/replies
+    if (action === "review-upvote" || action === "review-downvote" ||
+        action === "reply-upvote"  || action === "reply-downvote") {
+
+        const isReview = action.startsWith("review");
+        const id = isReview ? btn.dataset.reviewId : btn.dataset.replyId;
+        const vote = action.includes("upvote") ? "upvote" : "downvote";
+
+        await fetch(`${isReview ? "/reviews" : "/replies"}/${id}/vote`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ vote }),
         });
+
         loadReviews();
         return;
     }
 
-    // voting on replies
-    if (action === 'reply-upvote' || action === 'reply-downvote') {
-        const replyId = btn.dataset.replyId;
-        const vote = action === 'reply-upvote' ? 'upvote' : 'downvote';
-        await fetch(`/reviews/reply/${replyId}/vote`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ vote }),
-        });
-        loadReviews();
-        return;
-    }
+    // editing a review/reply
+    if (action === "review-edit" || action === "reply-edit" ||
+        action === "cancel-edit" || action === "cancel-reply-edit") {
 
-    // editing a review
-    if (action === 'review-edit') {
-        const reviewId = btn.dataset.reviewId;
-        const editDiv = reviewsList.querySelector(`.edit-input[data-review-id="${reviewId}"]`,);
-        if (editDiv) {
-            editDiv.classList.remove('hidden');
-        }
-        return;
-    }
+        const isReview = action.includes("review");
+        const id = isReview ? btn.dataset.reviewId : btn.dataset.replyId;
 
-    // cancelling an edit
-    if (action === 'cancel-edit') {
-        const reviewId = btn.dataset.reviewId;
-        const editDiv = reviewsList.querySelector(`.edit-input[data-review-id="${reviewId}"]`,);
-        if (editDiv) {
-            editDiv.classList.add('hidden');
+        const selector = isReview ? `.edit-input[data-review-id="${id}"]` : `.reply-edit[data-reply-id="${id}"]`;
+
+        const box = reviewsList.querySelector(selector);
+        if (!box) return;
+
+        if (action.startsWith("cancel")) {
+            box.classList.add("hidden");
+        } else {
+            box.classList.remove("hidden");
         }
+
         return;
     }
 
     // submitting changes for edit
-    if (action === 'save-edit') {
-        const reviewId = btn.dataset.reviewId;
-        const editDiv = reviewsList.querySelector(`.edit-input[data-review-id="${reviewId}"]`,);
-        if (!editDiv) return;
-        const textarea = editDiv.querySelector('.edit-textarea');
-        const review_text = textarea.value;
+    if (action === "save-edit" || action === "save-reply-edit") {
 
-        const res = await fetch(`/reviews/review/${reviewId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ review_text }),
+        const isReview = action === "save-edit";
+        const id = isReview ? btn.dataset.reviewId : btn.dataset.replyId;
+
+        const selector = isReview ? `.edit-input[data-review-id="${id}"]` : `.reply-edit[data-reply-id="${id}"]`;
+
+        const editBox = reviewsList.querySelector(selector);
+        if (!editBox) return;
+
+        const textarea = editBox.querySelector("textarea");
+        const text = textarea.value;
+
+        const res = await fetch(`${isReview ? "/reviews" : "/replies"}/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(isReview ? { review_text: text } : { reply_text: text }),
         });
 
         if (!res.ok) {
             const body = await res.json().catch(() => ({}));
-            alert(body.error || 'Failed to edit review.');
+            alert(body.error || `Failed to edit ${isReview ? "review" : "reply"}.`);
             return;
         }
 
-        editDiv.classList.add('hidden');
         loadReviews();
         return;
     }
 
-    // deleting a review
-    if (action === 'review-delete') {
-        const reviewId = btn.dataset.reviewId;
-        if (!confirm('Delete your review?')) return;
+    // deleting a review/reply
+    if (action === "review-delete" || action === "reply-delete") {
 
-        const res = await fetch(`/reviews/review/${reviewId}`, {method: 'DELETE',});
+        const isReview = action === "review-delete";
+        const id = isReview ? btn.dataset.reviewId : btn.dataset.replyId;
+
+        if (!confirm(`Delete this ${isReview ? "review" : "reply"}?`)) return;
+
+        const res = await fetch(`${isReview ? "/reviews" : "/replies"}/${id}`, {
+            method: "DELETE",
+        });
 
         if (!res.ok) {
             const body = await res.json().catch(() => ({}));
-            alert(body.error || 'Failed to delete review.');
+            alert(body.error || `Failed to delete ${isReview ? "review" : "reply"}.`);
             return;
         }
 
-        await setupReviewBox();
+        if (isReview) await setupReviewBox();
         loadReviews();
         return;
     }
 
-    // replying to a review
-    if (action === 'review-reply') {
-        const reviewId = btn.dataset.reviewId;
-        const replyDiv = reviewsList.querySelector(`.reply-input[data-review-id="${reviewId}"]`,);
-        if (replyDiv) {
-            replyDiv.classList.toggle('hidden');
-        }
+    // replying to a review/reply
+    if (action === "review-reply" || action === "reply-reply") {
+
+        const isReview = action === "review-reply";
+        const id = isReview ? btn.dataset.reviewId : btn.dataset.replyId;
+
+        const selector = isReview ? `.reply-input[data-review-id="${id}"]` : `.reply-input[data-parent-reply="${id}"]`;
+
+        const box = reviewsList.querySelector(selector);
+        if (box) box.classList.toggle("hidden");
+
         return;
     }
 
     // sending a reply
-    if (action === 'send-reply') {
+    if (action === "send-reply" || action === "send-nested-reply") {
+
+        const isNested = action === "send-nested-reply";
         const reviewId = btn.dataset.reviewId;
-        const replyDiv = reviewsList.querySelector(`.reply-input[data-review-id="${reviewId}"]`,);
-        const textarea = replyDiv.querySelector('.reply-textarea');
+        const parentReplyId = isNested ? Number(btn.dataset.parentReply) : null;
+
+        const selector = isNested ? `.reply-input[data-parent-reply="${parentReplyId}"]` : `.reply-input[data-review-id="${reviewId}"]`;
+
+        const replyDiv = reviewsList.querySelector(selector);
+        const textarea = replyDiv.querySelector(".reply-textarea");
         const reply_text = textarea.value;
 
-        const res = await fetch(`/reviews/review/${reviewId}/reply`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ reply_text }),
-        });
-
-        if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
-            alert(body.error || 'Failed to post reply.');
-            return;
-        }
-
-        textarea.value = '';
-        replyDiv.classList.add('hidden');
-        loadReviews();
-        return;
-    }
-
-    // replying to a reply object
-    if (action === 'reply-reply') {
-        const replyId = btn.dataset.replyId;
-        const replyDiv = reviewsList.querySelector(`.reply-input[data-parent-reply="${replyId}"]`,);
-        if (replyDiv) {
-            replyDiv.classList.toggle('hidden');
-        }
-        return;
-    }
-
-    // sending nested replies
-    if (action === 'send-nested-reply') {
-        const parentReplyId = btn.dataset.parentReply;
-        const reviewId = btn.dataset.reviewId;
-        const replyDiv = reviewsList.querySelector(`.reply-input[data-parent-reply="${parentReplyId}"]`,);
-        const textarea = replyDiv.querySelector('.reply-textarea');
-        const reply_text = textarea.value;
-
-        const res = await fetch(`/reviews/review/${reviewId}/reply`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                reply_text,
-                parent_reply_id: Number(parentReplyId),
-            }),
-        });
-
-        if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
-            alert(body.error || 'Failed to post reply.');
-            return;
-        }
-
-        textarea.value = '';
-        replyDiv.classList.add('hidden');
-        loadReviews();
-        return;
-    }
-
-    // deleting a reply
-    if (action === 'reply-delete') {
-        const replyId = btn.dataset.replyId;
-        if (!confirm('Delete this reply?')) return;
-
-        const res = await fetch(`/reviews/reply/${replyId}`, { method: 'DELETE',});
-
-        if (!res.ok) {
-            const body = await res.json().catch(() => ({}));
-            alert(body.error || 'Failed to delete reply.');
-            return;
-        }
-
-        loadReviews();
-        return;
-    }
-
-    // editing a reply
-    if (action === "reply-edit") {
-        const replyId = btn.dataset.replyId;
-        const editBox = reviewsList.querySelector(`.reply-edit[data-reply-id="${replyId}"]`);
-    if (editBox) editBox.classList.remove("hidden");
-        return;
-    }
-
-    // cancelling an edit for a reply
-    if (action === "cancel-reply-edit") {
-        const replyId = btn.dataset.replyId;
-        const editBox = reviewsList.querySelector(`.reply-edit[data-reply-id="${replyId}"]`);
-    if (editBox) editBox.classList.add("hidden");
-        return;
-    }
-
-    // saving an edit to a reply
-    if (action === "save-reply-edit") {
-        const replyId = btn.dataset.replyId;
-        const editBox = reviewsList.querySelector(`.reply-edit[data-reply-id="${replyId}"]`);
-        const textarea = editBox.querySelector(".reply-edit-textarea");
-        const reply_text = textarea.value;
-
-        const res = await fetch(`/reviews/reply/${replyId}`, {
-            method: "PUT",
+        const res = await fetch(`/reviews/${reviewId}/reply`, {
+            method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ reply_text })
+            body: JSON.stringify(isNested ? { reply_text, parent_reply_id: parentReplyId } : { reply_text }),
         });
 
         if (!res.ok) {
             const body = await res.json().catch(() => ({}));
-            alert(body.error || "Failed to edit reply.");
+            alert(body.error || "Failed to post reply.");
             return;
         }
 
+        textarea.value = "";
+        replyDiv.classList.add("hidden");
         loadReviews();
         return;
     }
