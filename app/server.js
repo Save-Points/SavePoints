@@ -16,7 +16,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const hostname = 'localhost';
+const hostname = '0.0.0.0';
 const port = 3000;
 
 app.use(express.json());
