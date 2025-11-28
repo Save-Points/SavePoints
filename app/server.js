@@ -10,13 +10,16 @@ import apiRoutes from './routes/apiRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { getTwitchToken } from './middleware/token.js';
+import dotenv from 'dotenv';
 
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const hostname = 'localhost';
+const isProd = process.env.NODE_ENV === 'production' 
+const hostname = isProd ? '0.0.0.0' : 'localhost';
 const port = 3000;
 
 app.use(express.json());
