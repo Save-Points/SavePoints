@@ -67,7 +67,7 @@ function resetErrorMessages() {
     birthdateError.textContent = '';
 }
 
-signupButton.addEventListener('click', () => {
+function handleSignUp() {
     resetErrorMessages();
 
     let hasError = false;
@@ -146,4 +146,21 @@ signupButton.addEventListener('click', () => {
         .catch((error) => {
             messageDiv.textContent = `Error: ${error}`;
         });
-});
+}
+
+signupButton.addEventListener('click', handleSignUp);
+
+function createOnEnter(element) {
+    element.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            handleSignUp();
+        }
+    })
+}
+
+createOnEnter(email);
+createOnEnter(username);
+createOnEnter(password);
+createOnEnter(birthday);
+createOnEnter(birthmonth);
+createOnEnter(birthyear);

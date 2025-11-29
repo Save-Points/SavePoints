@@ -98,6 +98,10 @@ function renderGames(games) {
 
         const row = document.createElement('tr');
 
+        const statusColorTd = document.createElement('td');
+        statusColorTd.classList = game.status === 'on_hold' ? 'on-hold' : game.status;
+        row.append(statusColorTd);
+
         const indexTd = document.createElement('td');
         indexTd.textContent = i + 1;
         row.append(indexTd);
@@ -135,6 +139,11 @@ function renderGames(games) {
         const hoursPlayedTd = document.createElement('td');
         hoursPlayedTd.textContent = game.hours_played;
         row.append(hoursPlayedTd);
+
+        const reviewTd = document.createElement('td');
+        // TODO: add link to review if there is one
+        reviewTd.textContent = '-';
+        row.append(reviewTd);
         
         gamesBody.append(row);
     }

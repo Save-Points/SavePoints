@@ -10,6 +10,8 @@ const gameRelease = document.getElementById('releaseDate');
 const gamePlatforms = document.getElementById('platforms');
 const gameGenres = document.getElementById('genres');
 const gameSummary = document.getElementById('summary');
+const gameDevelopers = document.getElementById('developers');
+const gamePublishers = document.getElementById('publishers');
 
 const addButton = document.getElementById('addToList');
 const userGameInput = document.getElementById('userGameAdd');
@@ -51,7 +53,13 @@ if (gameId) {
 
                     gameHeader.textContent = game.name;
 
-                    gameRating.textContent = Math.round(game.aggregated_rating)
+                    gameRating.textContent = +Math.round(game.aggregated_rating);
+
+                    const developers = game.involved_companies.filter(company => company.developer);
+                    gameDevelopers.textContent = developers.length > 0 ?  developers.map(dev => dev.company.name).join(', ') : 'N/A';
+
+                    const publishers = game.involved_companies.filter(company => company.publisher);
+                    gamePublishers.textContent = publishers.length > 0 ? publishers.map(dev => dev.company.name).join(', ') : 'N/A';
 
                     gameSummary.textContent = game.summary;
                 });
@@ -163,7 +171,7 @@ function renderReview(review) {
         review.updated_at && review.updated_at !== review.created_at;
 
     const ratingText =
-        review.rating !== null && review.rating !== undefined ? `${Number(review.rating).toFixed(1)}` : 'N/A';
+        review.rating !== null && review.rating !== undefined ? `${+review.rating}/10` : '-';
 
     return `
         <div class="review-card" data-review-id="${review.id}">
@@ -414,11 +422,16 @@ submitButton.addEventListener('click', () => {
         })
     }).then((response => {
         if (response.status >= 400) {
+            if (response.status === 401) {
+                window.location.href = '/login.html';
+                return;
+            }
+
             response.json().then((body) => {
                 messageDiv.style.display = 'inline-block';
                 messageDiv.textContent = body.error;
                 messageDiv.classList.add('error-message');
-            })
+            });
         } else {
             userGameInput.classList.toggle('show');
             messageDiv.style.display = 'inline-block';

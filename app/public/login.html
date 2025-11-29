@@ -6,26 +6,51 @@
         <link rel="stylesheet" href="style.css" />
     </head>
     <body>
-        <div>
-            <h2>Login</h2>
-            <div class="form">
-                <div class="input">
-                    <label for="username">Username:</label>
-                    <input id="username" type="text" name="username" required />
+        <div id="header"></div>
+        <table class="content-table">
+            <tr>
+                <td>
+                    <h3>Login</h3>              
+                </td>
+            </tr>
+        </table>
+        <div class="content-wrapper centered-content">
+            <div class="auth-box">
+                <div class="form">
+                    <div class="input">
+                        <label for="username">Username:</label>
+                        <br/>
+                        <input 
+                            id="username" 
+                            type="text" 
+                            name="username" 
+                            required 
+                            class="auth-input"
+                        />
+                    </div>
+                    <div class="input" style="padding-top: 10px;">
+                        <label for="password">Password:</label>
+                        <br/>
+                        <input
+                            id="password"
+                            type="password"
+                            name="password"
+                            required
+                            class="auth-input"
+                        />
+                    </div>
+                    <button id="login" class="auth-button" style="margin-top: 10px;">Login</button>
+                    <div id="message" class="error-message"></div>
                 </div>
-                <div class="input">
-                    <label for="password">Password:</label>
-                    <input
-                        id="password"
-                        type="password"
-                        name="password"
-                        required
-                    />
-                </div>
-                <button id="login">Login</button>
             </div>
+            
         </div>
-        <div id="message"></div>
         <script src="login.js"></script>
+        <script type="module"> 
+            import { loadHeader } from './header.js';
+            document.addEventListener("DOMContentLoaded", () => {
+                loadHeader();
+            });
+        </script> 
     </body>
 </html>

@@ -6,42 +6,71 @@
         <link rel="stylesheet" href="style.css" />
     </head>
     <body>
-        <div>
-            <h2>Sign Up</h2>
-            <div class="form">
-                <div class="input">
-                    <label for="email">Email:</label>
-                    <input id="email" type="text" name="email" required />
-                    <div id="emailError" class="error-message"></div>
-                </div>
-                <div class="input">
-                    <label for="username">Username:</label>
-                    <input id="username" type="text" name="username" required />
-                    <div id="usernameError" class="error-message"></div>
-                </div>
-                <div class="input">
-                    <label for="password">Password:</label>
-                    <input
-                        id="password"
-                        type="password"
-                        name="password"
-                        required
-                    />
-                    <div id="passwordError" class="error-message"></div>
-                </div>
-                <div class="input">
-                    <label for="birthdate">Date of Birth:</label>
-                    <div id="birthdateWrapper" style="display: inline-block">
-                        <select id="birthmonth" name="birthmonth"></select>
-                        <select id="birthday" name="birthday"></select>
-                        <select id="birthyear" name="birthyear"></select>
+        <div id="header"></div>
+        <table class="content-table">
+            <tr>
+                <td>
+                    <h3>Sign Up</h3>              
+                </td>
+            </tr>
+        </table>
+        <div class="content-wrapper centered-content">
+            <div class="auth-box">
+                <div class="form">
+                    <div class="input">
+                        <label for="email">Email:</label>
+                        <input 
+                            id="email" 
+                            type="text" 
+                            name="email" 
+                            required
+                            class="auth-input"
+                        />
+                        <div id="emailError" class="error-message"></div>
                     </div>
-                    <div id="birthdateError" class="error-message"></div>
+                    <div class="input">
+                        <label for="username">Username:</label>
+                        <input 
+                            id="username"
+                            type="text" 
+                            name="username" 
+                            required 
+                            class="auth-input"
+                        />
+                        <div id="usernameError" class="error-message"></div>
+                    </div>
+                    <div class="input">
+                        <label for="password">Password:</label>
+                        <input
+                            id="password"
+                            type="password"
+                            name="password"
+                            required
+                            class="auth-input"
+                        />
+                        <div id="passwordError" class="error-message"></div>
+                    </div>
+                    <div class="input">
+                        <label for="birthdate">Date of Birth:</label>
+                        <br/>
+                        <div id="birthdateWrapper">
+                            <select id="birthmonth" name="birthmonth" class="auth-input" style="width: 25%;"></select>
+                            <select id="birthday" name="birthday" class="auth-input" style="width: 25%;"></select>
+                            <select id="birthyear" name="birthyear" class="auth-input" style="width: 25%;"></select>
+                        </div>
+                        <div id="birthdateError" class="error-message"></div>
+                    </div>
+                    <button id="signup" class="auth-button" style="margin-top: 10px;">Sign Up</button>
                 </div>
-                <button id="signup">Sign Up</button>
             </div>
+            <div id="message"></div>
         </div>
-        <div id="message"></div>
         <script src="signup.js"></script>
+        <script type="module"> 
+            import { loadHeader } from './header.js';
+            document.addEventListener("DOMContentLoaded", () => {
+                loadHeader();
+            });
+        </script> 
     </body>
 </html>
