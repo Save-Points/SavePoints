@@ -95,30 +95,21 @@ router.delete('/:targetId', authorize, async (req, res) => {
 
 router.get('/list/:userId', async (req, res) => {
     const userId = parseInt(req.params.userId);
-    const limit = parseInt(req.params.limit);
-
-    let query = `SELECT u.id, u.username, u.profile_pic_url 
-                 FROM friends f
-                 JOIN users u ON (
-                    CASE 
-                        WHEN f.requester_id = $1 THEN f.receiver_id = u.id
-                        ELSE f.requester_id = u.id
-                    END
-                 )
-                 WHERE (f.requester_id = $1 OR f.receiver_id = $1) 
-                 AND f.status = 'accepted'`;
-
-    let values;
-    
-    if (limit) {
-        query += 'LIMIT $2'
-        values = [userId, limit];
-    } else {
-        values = [userId];
-    }
 
     try {
-        const result = await pool.query(query, values);
+        const result = await pool.query(
+            `SELECT u.id, u.username, u.profile_pic_url 
+             FROM friends f
+             JOIN users u ON (
+                CASE 
+                    WHEN f.requester_id = $1 THEN f.receiver_id = u.id
+                    ELSE f.requester_id = u.id
+                END
+             )
+             WHERE (f.requester_id = $1 OR f.receiver_id = $1) 
+             AND f.status = 'accepted'`,
+            [userId]
+        );
         res.json(result.rows);
     } catch (error) {
         console.error('Friend list error', error);

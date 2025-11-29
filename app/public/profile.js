@@ -3,6 +3,7 @@ import { generateGameCards } from "./utils/gameCard.js";
 let userInfo = {
     games: [],
     favoriteGames: [],
+    friends: [],
     averageRating: 0,
     hoursPlayed: 0,
     averageHoursPlayed: 0,
@@ -153,7 +154,7 @@ async function removeConnection(targetId) {
 async function loadFriends(userId) {
     const container = document.getElementById('friendsContainer');
     try {
-        const res = await fetch(`/friends/list/${userId}?limit=8`);
+        const res = await fetch(`/friends/list/${userId}`);
         const friends = await res.json();
 
         container.textContent = ''; 
@@ -166,10 +167,12 @@ async function loadFriends(userId) {
             return;
         }
 
+        userInfo.friends = friends;
+
         const friendsContainer = document.createElement('div');
         friendsContainer.classList = 'friends-container';
 
-        friends.forEach(friend => {
+        friends.slice(0, 8).forEach(friend => {
             const imgLink = document.createElement('a');
             imgLink.href = `/profile/${friend.username}`;
             const img = document.createElement('img');
