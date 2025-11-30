@@ -54,14 +54,22 @@ async function loadSearchList() {
                             titleLink.textContent = game.name;
                             infoDiv.appendChild(titleLink);
 
-                            const developerDiv = document.createElement('div');
-                            const developers = game.involved_companies.filter(company => company.developer);
-                            developerDiv.textContent = `Developers: ${developers.length > 0 ? developers.map(dev => dev.company.name).join(', ') : 'N/A'}`;
-                            infoDiv.appendChild(developerDiv);
 
+                            const developerDiv = document.createElement('div');
                             const publisherDiv = document.createElement('div');
-                            const publishers = game.involved_companies.filter(company => company.publisher);
-                            publisherDiv.textContent = `Publishers: ${publishers.length > 0 ? publishers.map(dev => dev.company.name).join(', ') : 'N/A'}`;
+                            if (game.involved_companies) {
+                                const developers = game.involved_companies.filter(company => company.developer);
+                                developerDiv.textContent = `Developers: ${developers.length > 0 ? developers.map(dev => dev.company.name).join(', ') : 'N/A'}`;
+
+                                const publishers = game.involved_companies.filter(company => company.publisher);
+                                publisherDiv.textContent = `Publishers: ${publishers.length > 0 ? publishers.map(pub => pub.company.name).join(', ') : 'N/A'}`;
+                            } else {
+                                developerDiv.textContent = 'Developers: N/A';
+                                publisherDiv.textContent = 'Publishers: N/A';
+                            }
+                            
+                            
+                            infoDiv.appendChild(developerDiv);
                             infoDiv.appendChild(publisherDiv);
 
                             infoTd.appendChild(infoDiv);

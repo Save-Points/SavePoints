@@ -55,11 +55,18 @@ if (gameId) {
 
                     gameRating.textContent = +Math.round(game.aggregated_rating);
 
-                    const developers = game.involved_companies.filter(company => company.developer);
-                    gameDevelopers.textContent = developers.length > 0 ?  developers.map(dev => dev.company.name).join(', ') : 'N/A';
+                    if (game.involved_companies) {
+                        const developers = game.involved_companies.filter(company => company.developer);
+                        gameDevelopers.textContent = developers.length > 0 ?  developers.map(dev => dev.company.name).join(', ') : 'N/A';
 
-                    const publishers = game.involved_companies.filter(company => company.publisher);
-                    gamePublishers.textContent = publishers.length > 0 ? publishers.map(dev => dev.company.name).join(', ') : 'N/A';
+                        const publishers = game.involved_companies.filter(company => company.publisher);
+                        gamePublishers.textContent = publishers.length > 0 ? publishers.map(dev => dev.company.name).join(', ') : 'N/A';
+                    } else {
+                        gameDevelopers.textContent = 'N/A';
+                        gamePublishers.textContent = 'N/A';
+                    }
+
+
 
                     gameSummary.textContent = game.summary;
                 });
