@@ -267,6 +267,7 @@ th.sort-desc::after {
 .carousel {
     width: 100%;
     overflow-x: auto;
+    overflow-y: hidden;
     /* margin: 1em auto; */
     display: flex;
     gap: 1em;
