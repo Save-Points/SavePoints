@@ -1,5 +1,5 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Inter', sans-serif;
     margin: 2rem;
     background: white;
 }
@@ -605,6 +605,13 @@ th.sort-desc::after {
 }
 
 .content-table tr td h3 {
+    margin: 0 auto;
+}
+
+.content-header {
+    height: auto;
+    border-bottom: 1px solid black;
+    width: 1400px;
     margin: 0 auto;
 }
 
