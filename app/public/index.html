@@ -6,84 +6,45 @@
         <link rel="stylesheet" href="style.css" />
     </head>
     <body>
-        <h1>SavePoints</h1>
+        <div id="header"></div>
+        <div class="content-wrapper">
+            <div class="container-large" style="border-right: 1px solid #e5e5e5">
+                <div class="list-section">
+                    <div class="list-header">
+                        <h2>Popular Games</h2>
+                        <select id="genreFilter">
+                            <option value="all">All Genres</option>
+                        </select>
+                    </div>
+                    <div class="carousel-wrapper">
+                        <button class="scroll-btn-left">&lt;</button>
+                        <div class="carousel" id="gamesContainer"></div>
+                        <button class="scroll-btn-right">&gt;</button>
+                    </div>
+                </div>
+                
 
-        <div class="user-menu">
-            <a href="login.html"
-                ><button id="login" class="auth-button hidden">Login</button></a
-            >
-            <a href="signup.html"
-                ><button id="signup" class="auth-button hidden">
-                    Sign Up
-                </button></a
-            >
-            <button id="profile" class="auth-button hidden"></button>
-            <div id="userDropdown" class="dropdown">
-                <a href="profile.html">Profile</a>
-                <a href="settings.html">Settings</a>
-                <a id="logout">Logout</a>
-            </div>
+                <div class="list-section">
+                    <div class="list-header">
+                        <h2>New Releases</h2>
+                    </div>
+                    <div class="carousel-wrapper">
+                        <button class="scroll-btn-left">&lt;</button>
+                        <div class="carousel" id="newReleasesContainer"></div>
+                        <button class="scroll-btn-right">&gt;</button>
+                    </div>
+                </div>
+            </div>  
+            <div class="container-small" style="border: none;"></div>
         </div>
 
-        <div class="search-section">
-            <h2>Search</h2>
-            <input
-                type="text"
-                id="searchInput"
-                placeholder="Search for Games..."
-            />
-            <button id="searchButton">Search</button>
-            <select id="searchType">
-                <option value="games">Games</option>
-                <option value="users">Users</option>
-            </select>
-            <div id="searchResultsDisplay" style="display: none">
-                <h3>Search Results:</h3>
-                <div id="searchResults" class="search-results games-grid"></div>
-            </div>
-        </div>
 
-        <div class="list-section">
-            <div class="list-header">
-                <h2>All Games</h2>
-                <select id="genreFilter">
-                    <option value="all">All Genres</option>
-                </select>
-            </div>
-            <div class="scroll-wrapper">
-                <button class="scroll-btn left" id="scrollLeftMain">
-                    &#9664;
-                </button>
-                <div
-                    id="gamesContainer"
-                    class="games-grid horizontal-scroll"
-                ></div>
-                <button class="scroll-btn right" id="scrollRightMain">
-                    &#9654;
-                </button>
-            </div>
-            <button id="loadMore" class="load-more">Load More</button>
-        </div>
-
-        <div class="list-section">
-            <div class="list-header">
-                <h2>New Releases</h2>
-            </div>
-            <div class="scroll-wrapper">
-                <button class="scroll-btn left" id="scrollLeftNew">
-                    &#9664;
-                </button>
-                <div
-                    id="newReleasesContainer"
-                    class="games-grid horizontal-scroll"
-                ></div>
-                <button class="scroll-btn right" id="scrollRightNew">
-                    &#9654;
-                </button>
-            </div>
-            <button id="loadMoreNew" class="load-more">Load More</button>
-        </div>
-
-        <script src="index.js"></script>
+        <script src="index.js" type="module"></script>
+        <script type="module"> 
+            import { loadHeader } from './header.js';
+            document.addEventListener("DOMContentLoaded", () => {
+                loadHeader();
+            });
+        </script> 
     </body>
 </html>

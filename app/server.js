@@ -46,6 +46,10 @@ app.get('/game', (_req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'game.html'));
 });
 
+app.get('/search', (_req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'search.html'));
+});
+
 app.listen(port, hostname, () => {
     console.log(`Listening at http://${hostname}:${port}`);
     (async () => {

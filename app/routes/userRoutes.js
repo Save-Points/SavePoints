@@ -9,14 +9,24 @@ router.use(cookieParser());
 router.get('/search', async (req, res) => {
     const searchTerm = req.query.term;
 
-    let query;
+    let query = `
+        SELECT
+            u.id, 
+            u.username, 
+            u.profile_pic_url, 
+            u.bio,
+            COUNT(ug.user_id) AS game_count
+        FROM users u
+        LEFT JOIN user_games ug ON ug.user_id = u.id
+        ${searchTerm ? 'WHERE u.username ILIKE $1' : ''}
+        GROUP BY u.id
+        LIMIT 50;
+    `
     let values;
 
     if (searchTerm) {
-        query = `SELECT id, username, profile_pic_url FROM users WHERE username ILIKE $1 LIMIT 50`;
         values = [`${searchTerm}%`];
     } else {
-        query = `SELECT id, username, profile_pic_url FROM users LIMIT 50`;
         values = [];
     }
 

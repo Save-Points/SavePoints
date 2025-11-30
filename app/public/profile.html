@@ -2,65 +2,56 @@
 <html lang="en">
     <head>
         <meta charset="utf-8" />
-        <title>My Profile</title>
+        <title>Profile</title>
         <link rel="stylesheet" href="/style.css" />
     </head>
     <body>
-        <nav>
-            <a href="/index.html" class="back-button">Back to Home</a>
-            <a href="/settings.html" class="auth-button" style="float: right"
-                >Settings</a
-            >
-        </nav>
+        <div id="header"></div>
+        <h3 id="profileName" class="content-header"></h3>
+        <div class="content-wrapper" style="display: table;">   
+            <div class="container-small">
+                <div class="profile-header">
+                    <img
+                        id="avatar"
+                        class="profile-avatar"
+                        src="https://placehold.co/150?text=User"
+                        alt="User Avatar"
+                    />
+                    <p id="bio" style="font-size: 0.8rem;"></p>
+                    <p style="font-size: 0.8rem; color: #999">
+                        Member since <span id="joinDate">...</span>
+                    </p>
+                    <div id="friendActionArea" style="margin: 10px 0;"></div>
+                </div>
 
-        <div
-            class="container"
-            style="max-width: 800px; margin: 0 auto; padding: 20px"
-        >
-            <div class="profile-header">
-                <img
-                    id="avatar"
-                    class="profile-avatar"
-                    src="https://placehold.co/150?text=User"
-                    alt="User Avatar"
-                />
-                <h1 id="username">Loading...</h1>
-                <div id="friendActionArea" style="margin: 10px 0;"></div>
-                <p id="bio" class="profile-bio"></p>
-                <p style="font-size: 0.8rem; color: #999">
-                    Member since <span id="joinDate">...</span>
-                </p>
-            </div>
+                <div class="list-header">
+                    <h3>Friends</h3>
+                    <a id="viewFriends" style="font-size: 0.8rem" class="view-all">View All</a>
+                </div>
+                <div id="friendsContainer" style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+                    <p style="color: #777;">No friends added yet.</p>
+                </div>
 
-            <div class="section-header">
-                <h2>Favorites</h2>
-                <a href="#">View All</a>
             </div>
-
-            <div id="favoritesContainer">
-                <p style="color: #777; margin-top: 20px">
-                    No games added to favorites yet.
-                </p>
-            </div>
-
-            <div class="section-header">
-                <h2>Friends</h2>
-            </div>
-            <div id="friendsContainer" style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
-                <p style="color: #777;">No friends added yet.</p>
-            </div>
-
-            <div class="section-header">
-                <h2>My Game List</h2>
-                <a id="gameView" href="#">View All</a>
-            </div>
-            <div id="listContainer">
-                <p style="color: #777; margin-top: 20px">
-                    No games added to list yet.
-                </p>
+        <div class="container-large" style="padding-left: 0; border-bottom: 1p solid white;">
+            <ul>
+                <li><a id="overview" class="profile-tab active">Overview</a></li>
+                <li><a id="reviews" class="profile-tab">Reviews</a></li>
+                <li><a id="friends" class="profile-tab">Friends</a></li>
+            </ul>
+            <div id="contentDiv" style="padding: 10px;">
             </div>
         </div>
+    </div>
+        </table>
 
-        <script src="/profile.js"></script>
+
+        <script src="/profile.js" type="module"></script>
+        <script type="module"> 
+            import { loadHeader } from '/header.js';
+            document.addEventListener("DOMContentLoaded", () => {
+                loadHeader();
+            });
+        </script> 
     </body>
 </html>

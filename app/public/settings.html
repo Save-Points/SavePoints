@@ -6,42 +6,45 @@
         <link rel="stylesheet" href="style.css" />
     </head>
     <body>
-        <nav>
-            <a href="profile.html" class="back-button">Back to Profile</a>
-        </nav>
+        <div id="header"></div>
+        <h3 class="content-header">Account Settings</h3>
+        <div class="content-wrapper">
+            <div class="settings-box">
+                <label for="username">Username</label>
+                <input
+                    type="text"
+                    id="username"
+                    disabled
+                    title="Usernames cannot be changed"
+                />
 
-        <div class="settings-box">
-            <h1>Account Settings</h1>
+                <label for="picUrl">Profile Picture URL</label>
+                <input
+                    type="text"
+                    id="picUrl"
+                    placeholder="/images/default_profile_pic.jpg"
+                />
 
-            <label for="username">Username</label>
-            <input
-                type="text"
-                id="username"
-                disabled
-                title="Usernames cannot be changed"
-            />
+                <label for="bio">Bio / Description</label>
+                <textarea
+                    id="bio"
+                    rows="5"
+                    placeholder="Tell us about your favorite games..."
+                ></textarea>
 
-            <label for="picUrl">Profile Picture URL</label>
-            <input
-                type="text"
-                id="picUrl"
-                placeholder="/images/default_profile_pic.jpg"
-            />
-
-            <label for="bio">Bio / Description</label>
-            <textarea
-                id="bio"
-                rows="5"
-                placeholder="Tell us about your favorite games..."
-            ></textarea>
-
-            <button id="saveBtn">Save Changes</button>
-            <p
-                id="msg"
-                style="text-align: center; margin-top: 15px; font-weight: bold"
-            ></p>
+                <button id="saveBtn">Save Changes</button>
+                <p
+                    id="msg"
+                    style="text-align: center; margin-top: 15px; font-weight: bold"
+                ></p>
+            </div>
         </div>
-
         <script src="settings.js"></script>
+        <script type="module"> 
+            import { loadHeader } from './header.js';
+            document.addEventListener("DOMContentLoaded", () => {
+                loadHeader();
+            });
+        </script> 
     </body>
 </html>

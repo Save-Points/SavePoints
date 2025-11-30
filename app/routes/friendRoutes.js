@@ -98,7 +98,7 @@ router.get('/list/:userId', async (req, res) => {
 
     try {
         const result = await pool.query(
-            `SELECT u.id, u.username, u.profile_pic_url 
+            `SELECT u.id, u.username, u.profile_pic_url, u.bio, f.updated_at 
              FROM friends f
              JOIN users u ON (
                 CASE 

@@ -3,7 +3,9 @@ const password = document.getElementById('password');
 const loginButton = document.getElementById('login');
 const messageDiv = document.getElementById('message');
 
-loginButton.addEventListener('click', () => {
+function handleLogin() {
+    messageDiv.textContent = '';
+
     fetch('/auth/login', {
         method: 'POST',
         headers: {
@@ -26,4 +28,18 @@ loginButton.addEventListener('click', () => {
         .catch((error) => {
             messageDiv.textContent = `Error: ${error}`;
         });
+}
+
+loginButton.addEventListener('click', handleLogin);
+
+username.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            handleLogin();
+        }
+    });
+
+password.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+        handleLogin();
+    }
 });

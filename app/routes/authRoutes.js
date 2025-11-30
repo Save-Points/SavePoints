@@ -243,7 +243,7 @@ router.post('/login', async (req, res) => {
 
     // username doesn't exist
     if (result.rows.length === 0) {
-        return res.status(401).json({ error: 'Invalid username or password.' });
+        return res.status(401).json({ error: 'Invalid username or password. Both fields are case sensitive.' });
     }
     const hash = result.rows[0].password;
 

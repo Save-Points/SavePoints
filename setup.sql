@@ -121,4 +121,7 @@ CREATE TABLE friends (
     CHECK (requester_id != receiver_id)
 );
 
+CREATE TRIGGER set_friends_updated_at BEFORE UPDATE ON friends FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+
 -- TODO: Notifications for friends (was thinking add a table so we can do messages, etc)? 
