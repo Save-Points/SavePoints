@@ -359,7 +359,7 @@ function createProgressDiv(progressType) {
 }
 
 function formatStatus(status) {
-    return status.split('_').map(word => word[0].toUpperCase() + word.slice(1)).join(' ');
+    return status.split('-').map(word => word[0].toUpperCase() + word.slice(1)).join(' ');
 }
 
 function loadStatistics() {
