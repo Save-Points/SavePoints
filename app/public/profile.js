@@ -21,6 +21,7 @@ const contentDiv = document.getElementById('contentDiv');
 const overviewTab = document.getElementById('overview');
 const reviewsTab = document.getElementById('reviews');
 const friendsTab = document.getElementById('friends');
+const viewAllFriends = document.getElementById('viewFriends');
 
 const pathParts = window.location.pathname.split('/'); 
 const usernameParam = pathParts[2];
@@ -533,26 +534,97 @@ async function loadGameLists() {
     await createGameList('favorites');
 }
 
-async function loadOverview() {
+async function loadOverviewTab() {
     contentDiv.textContent = '';
     loadStatistics();
     await loadGameLists();
 }
 
+async function loadFriendsTab() {
+    contentDiv.textContent = '';
+    const header = document.createElement('h2');
+    header.classList = 'list-header';
+    header.textContent = 'Friends';
+    header.style.marginTop = '0';
+    contentDiv.appendChild(header);
+    const friendsContainer = document.createElement('div');
+    friendsContainer.classList = 'friends-container';
+
+    userInfo.friends.forEach(friend => {
+        const card = document.createElement('div');
+        card.classList = 'friend-card';
+
+        const friendUrl = `/profile/${friend.username}`;
+
+        const imgLink = document.createElement('a');
+        imgLink.href = friendUrl;
+        const img = document.createElement('img');
+        img.src = friend.profile_pic_url || '/images/default_profile_pic.jpg';
+        img.className = 'user-profile-pic';
+        img.alt = friend.username;
+        img.style = 'margin: 5px;'
+
+        const infoContainer = document.createElement('div');
+        infoContainer.classList = 'friend-info';
+
+        const mainContainer = document.createElement('div');
+        mainContainer.style = 'margin-top: 5px;'
+
+        const friendLink = document.createElement('a');
+        friendLink.href = friendUrl;
+        friendLink.textContent = friend.username;
+
+        const friendBio = document.createElement('div');
+        friendBio.textContent = friend.bio || 'No bio written yet.';
+        friendBio.classList = 'friend-bio';
+
+        mainContainer.appendChild(friendLink);
+        mainContainer.appendChild(friendBio);
+
+        const friendDate = document.createElement('div');
+        const dateStr = friend.updated_at;
+        const date = new Date(dateStr);
+        friendDate.textContent = `Friends since ${date.toLocaleDateString()}`
+        friendDate.style = 'font-size: 0.8rem; color: #999;'
+
+        imgLink.appendChild(img);
+        card.appendChild(imgLink);
+
+        infoContainer.appendChild(mainContainer);
+        infoContainer.appendChild(friendDate);
+
+        card.append(infoContainer);
+        
+        friendsContainer.append(card);
+    });
+    contentDiv.appendChild(friendsContainer);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     await loadProfile();
     await loadProfileGames();
-    await loadOverview();
+    await loadOverviewTab();
 });
 
-function setActive(id) {
+function setActive(elem) {
     const tabs = document.querySelectorAll('.profile-tab');
     tabs.forEach(tab => tab.classList.remove('active'));
 
-    document.getElementById(id).classList.add('active');
+    elem.classList.add('active');
 }
 
-document.getElementById('overview').addEventListener('click', async () => {
-    await loadOverview();
-    setActive('overview');
+overviewTab.addEventListener('click', async () => {
+    await loadOverviewTab();
+    setActive(overviewTab);
+});
+
+friendsTab.addEventListener('click', async () => {
+    loadFriendsTab();
+    setActive(friendsTab);
+});
+
+viewAllFriends.addEventListener('click', async () => {
+    loadFriendsTab();
+    setActive(friendsTab);
+    viewAllFriends.classList.add('visited');
 });

@@ -154,6 +154,32 @@ th.sort-desc::after {
     border-bottom: 1px solid black;
 }
 
+.list-header h3,
+.list-header a {
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.list-header h2 {
+    margin-bottom: 0;
+}
+
+.view-all {
+    color: #0000EE;
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: 0.8rem;
+}
+
+.view-all:hover {
+    text-decoration: none;
+}
+
+.visited {
+    color: #551A8B;
+}
+
 .carousel-wrapper {
     position: relative;
     width: 100%;
@@ -376,6 +402,35 @@ th.sort-desc::after {
     flex-wrap: wrap;
     gap: 0px;
     justify-content: flex-start;
+}
+
+.friend-card {
+    width: 370px;
+    height: 85px;
+    border: 1px solid black;
+    margin-top: 10px;
+    object-fit: cover;
+    margin-right: 10px; 
+    align-items: flex-start;
+    display: flex;
+}
+
+.friend-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 1;
+    height: 100%;
+    overflow: hidden;
+}
+
+.friend-bio {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 .user-card {
