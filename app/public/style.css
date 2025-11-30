@@ -806,8 +806,8 @@ ul li a.active {
     font-size: 30px;
     opacity: 0;
     transition: opacity 0.2s;
-    -webkit-text-stroke: 1px black;
     color: gold;
+    background: rgba(0,0,0,0.5);
 }
 
 .game-card:hover .star {
