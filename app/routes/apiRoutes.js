@@ -57,7 +57,9 @@ async function ensureGenreCache() {
 }
 
 router.post('/search', injectToken, async (req, res) => {
-    let searchTerm = req.body.searchTerm;
+    let searchTerm = req.body.searchTerm; 
+    let offset = parseInt(req.body.offset) || 0;
+
     if (!searchTerm) {
         return res.status(400).json({ error: 'Search term is required' });
     }
@@ -82,7 +84,8 @@ router.post('/search', injectToken, async (req, res) => {
             & version_parent = null
             & total_rating_count > 0
             & first_release_date != null;
-            limit 20;`,
+            limit 20;
+            offset ${offset};`,
             {
                 headers: {
                     'Client-ID': CLIENT_ID,
@@ -91,7 +94,28 @@ router.post('/search', injectToken, async (req, res) => {
                 },
             },
         );
-        res.json(apiResponse.data);
+
+        const countResponse = await axios.post(
+            'https://api.igdb.com/v4/games/count',
+            `search "${searchTerm}";
+            where game_type = (0,4,8,9,10)
+            & cover != null & cover.url != null
+            & version_parent = null
+            & total_rating_count > 0
+            & first_release_date != null;`,
+            {
+                headers: {
+                    'Client-ID': CLIENT_ID,
+                    Authorization: `Bearer ${accessToken}`,
+                    Accept: 'application/json',
+                },
+            },
+        );
+
+        res.json({
+            games: apiResponse.data,
+            count: countResponse.data.count,
+        });
     } catch (error) {
         console.log('Error querying IGDB:', error.message);
         res.status(500).json({ error: 'Error querying IGDB' });

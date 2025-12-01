@@ -30,7 +30,10 @@
                 </tr>
                 <tr>
                     <td>
-                        <h3 id="searchResults">Search Results for </h3>
+                        <div style="display: flex; justify-content: flex-start; align-items: flex-start;">
+                            <h3 id="searchResults" style="margin: 0;">Search Results for</h3>
+                            <div id="paginationTop" style="margin-left: auto; margin-bottom: 3px;"></div>
+                        </div>
                     </td>
                 </tr>
                 <tr>
@@ -45,6 +48,9 @@
                     </td>
                 </tr>
             </table>
+            <div style="display: flex; width: 100%;">
+                <div id="paginationBottom" style="margin-left: auto; margin-top: 3px;"></div>
+            </div>
         </div>
         <script src="/search.js"></script>
         <script type="module"> 

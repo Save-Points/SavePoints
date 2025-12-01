@@ -8,8 +8,9 @@ router.use(cookieParser());
 
 router.get('/search', async (req, res) => {
     const searchTerm = req.query.term;
+    const offset = req.query.offset;
 
-    let query = `
+    let searchQuery = `
         SELECT
             u.id, 
             u.username, 
@@ -20,21 +21,29 @@ router.get('/search', async (req, res) => {
         LEFT JOIN user_games ug ON ug.user_id = u.id
         ${searchTerm ? 'WHERE u.username ILIKE $1' : ''}
         GROUP BY u.id
-        LIMIT 50;
+        LIMIT 20
     `
-    let values;
 
-    if (searchTerm) {
-        values = [`${searchTerm}%`];
-    } else {
-        values = [];
-    }
+    searchQuery += searchTerm ? 'OFFSET $2' : 'OFFSET $1';
+    const searchValues = searchTerm ? [`%${searchTerm}%`, offset] : [offset];
+
+
+    let countQuery = `
+        SELECT 
+            COUNT(*) AS count
+        FROM users u 
+        ${searchTerm ? 'WHERE u.username ILIKE $1' : ''}
+    `
+
+    const countValues = searchTerm ? [`%${searchTerm}%`] : [];
 
     try {
-        await pool.query(query, values).then((result) => {
-            res.status(200).json({
-                rows: result.rows,
-            });
+        const userRes = await pool.query(searchQuery, searchValues);
+        const countRes = await pool.query(countQuery, countValues);
+
+        return res.status(200).json({
+            rows: userRes.rows,
+            count: parseInt(countRes.rows[0].count, 10),
         });
     } catch (error) {
         console.log('SELECT FAILED', error);

@@ -115,7 +115,7 @@ async function setupSearch() {
     function search() {
         const searchTerm = searchInput.value;
         const searchType = searchPicker.value;
-        window.location.href = `/search?type=${searchType}&term=${searchTerm}`
+        window.location.href = `/search?type=${searchType}&term=${searchTerm}&page=1`
     }
 
     searchButton.addEventListener('click', search);

@@ -550,6 +550,15 @@ async function loadFriendsTab() {
     const friendsContainer = document.createElement('div');
     friendsContainer.classList = 'friends-container';
 
+    if (!userInfo.friends || userInfo.friends.length === 0) {
+        console.log("here")
+        const p = document.createElement('p');
+        p.className = 'empty-msg';
+        p.textContent = 'No friends added yet.';
+        contentDiv.appendChild(p);
+        return;
+    }
+
     userInfo.friends.forEach(friend => {
         const card = document.createElement('div');
         card.classList = 'friend-card';

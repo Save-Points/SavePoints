@@ -1,10 +1,15 @@
 const params = new URLSearchParams(window.location.search);
 
-const searchType = params.get("type");
-const searchTerm = params.get("term");
+const searchType = params.get('type');
+const searchTerm = params.get('term');
+const searchPage = parseInt(params.get('page')) || 1;
 
 const searchBody = document.getElementById('searchBody');
 const searchResults = document.getElementById('searchResults');
+const paginationTop = document.getElementById('paginationTop');
+const paginationBottom = document.getElementById('paginationBottom');
+
+const ITEMS_PER_PAGE = 20;
 
 function clearSearchBody() {
     while (searchBody.firstChild) {
@@ -22,16 +27,20 @@ async function loadSearchList() {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ searchTerm: searchTerm }),
+                    body: JSON.stringify({ searchTerm: searchTerm, offset: (searchPage - 1) * ITEMS_PER_PAGE }),
             }).then((response) => {
                 if (response.status >= 400) {
                     response.json().then((body) => {
+                        // TODO: handle error on page
                          console.log("error");
                     })
                 } else {
                     response.json().then((body) => {
+                        const count = body.count;
+                        renderPagination(count);
+
                         clearSearchBody();
-                        for (const game of body) {
+                        for (const game of body.games) {
                             const gameUrl = `/game?id=${game.id}`
                             const row = document.createElement('tr');
                             const imgTd = document.createElement('td');
@@ -82,7 +91,8 @@ async function loadSearchList() {
             });
             break;
         case 'users':
-            await fetch(`/users/search?term=${searchTerm}`).then((response) => {
+            const userOffset = (searchPage - 1) * ITEMS_PER_PAGE;
+            await fetch(`/users/search?term=${searchTerm}&offset=${userOffset}`).then((response) => {
                 if (response.status >= 400) {
                     response.json().then((body) => {
                          console.log("error");
@@ -91,7 +101,9 @@ async function loadSearchList() {
                     response
                         .json()
                         .then((body) => {
-                            console.log(body);
+                            const count = body.count;
+                            renderPagination(count);
+
                             clearSearchBody();
                             for (const user of body.rows) {
                                 const userUrl = `/profile/${user.username}`
@@ -110,6 +122,7 @@ async function loadSearchList() {
 
                                 img.src = imageUrl;
                                 img.alt = user.username;
+                                img.className = 'user-profile-pic';
 
                                 imgLink.appendChild(img);
                                 imgTd.appendChild(imgLink);
@@ -175,7 +188,7 @@ function setupSearch() {
     function search() {
         const searchTerm = searchPageInput.value;
         const searchType = searchPagePicker.value;
-        window.location.href = `/search?type=${searchType}&term=${searchTerm}`
+        window.location.href = `/search?type=${searchType}&term=${searchTerm}&page=1`
     }
 
     searchPageButton.addEventListener('click', search);
@@ -191,6 +204,85 @@ function setupSearch() {
             search();
         }
     });
+}
+
+function renderPagination(count) {
+    paginationTop.textContent = '';
+    const totalPages = Math.ceil(count / ITEMS_PER_PAGE);
+
+    const getPageLinks = () => {
+        const pages = [];
+
+        pages.push(1);
+
+        let start = Math.max(searchPage - 3, 2);
+        let end = Math.min(searchPage + 3, totalPages - 1);
+
+        if (start > 2) {
+            pages.push('...');
+        }
+
+        for (let i = start; i <= end; i++) {
+            pages.push(i);
+        }
+
+        if (end < totalPages - 1) {
+            pages.push('...');
+        }
+
+        if (totalPages > 1) {
+            pages.push(totalPages);
+        }
+
+        return pages;
+    };
+
+    for (const elem of [paginationTop, paginationBottom]) {
+        const prevPage = document.createElement('button');
+        prevPage.textContent = '< Prev';
+        prevPage.disabled = searchPage <= 1;
+        prevPage.classList = 'auth-button';
+        prevPage.style = 'height: 25px; margin-right: 3px;'
+
+        prevPage.addEventListener('click', () => {
+            if (searchPage > 1) {
+                window.location.href = `/search?type=${searchType}&term=${searchTerm}&page=${searchPage - 1}`;
+            }
+        });
+
+        elem.appendChild(prevPage);
+
+        for (const page of getPageLinks()) {
+            if (page === '...') {
+                const span = document.createElement('span');
+                span.textContent = '...';
+                elem.appendChild(span);
+            } else {
+                const a = document.createElement('a');
+                a.href = `/search?type=${searchType}&term=${searchTerm}&page=${page}`;
+                a.textContent = page;
+                a.style = 'margin: 3px;'
+                if (page === searchPage) {
+                    a.style.fontWeight = 'bold';
+                }
+                elem.appendChild(a);
+            }
+        }
+
+        const nextPage = document.createElement('button');
+        nextPage.textContent = 'Next >';
+        nextPage.disabled = searchPage >= totalPages;
+        nextPage.classList = 'auth-button';
+        nextPage.style = 'height: 25px; margin-left: 3px;'
+
+        nextPage.addEventListener('click', () => {
+            if (searchPage < totalPages) {
+                window.location.href = `/search?type=${searchType}&term=${searchTerm}&page=${searchPage + 1}`;
+            }
+        });
+
+        elem.appendChild(nextPage);
+    }
 }
 
 
