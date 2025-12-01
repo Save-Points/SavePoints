@@ -184,7 +184,7 @@ function renderReview(review) {
         <div class="review-card" data-review-id="${review.id}">
             <div class="review-header-line">
                 <strong>${escapeHtml(review.username)}</strong>
-                <span> — Rating: ${ratingText}/10</span>
+                <span> — Rating: ${ratingText}</span>
             </div>
 
             <div class="review-meta">
