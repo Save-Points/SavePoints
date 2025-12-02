@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Search</title>
+        <link rel="stylesheet" href="/style.css" />
+    </head>
+    <body>
+        <div id="header"></div>
+        <div class="content-wrapper">
+            <table class="content-table">
+                <tr>
+                    <td>
+                        <h3>Search</h3>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border-bottom: none;">
+                        <div style="display: flex; justify-content: center; width: 100%;">
+                            <div class="search-section" style="margin-top: 20px; margin-bottom: 20px;">
+                                <select id="searchPageType" style="cursor: pointer;">
+                                    <option value="games">Games</option>
+                                    <option value="users">Users</option>
+                                </select>
+                                <input type="text" id="searchPageInput" placeholder="Search for Games..." style="width: 750px; height: 30px;"/>
+                                <button id="searchPageButton">&#128269;&#65038;</button>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <div style="display: flex; justify-content: flex-start; align-items: flex-start;">
+                            <h3 id="searchResults" style="margin: 0;">Search Results for</h3>
+                            <div id="paginationTop" style="margin-left: auto; margin-bottom: 3px;"></div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="border-bottom: none;">
+                        <table id="searchTable" style="width: 100%;">
+                            <colgroup>
+                                <col style="width: 5%;">
+                                <col style="width: 95%;">
+                            </colgroup>
+                            <tbody id="searchBody"></tbody>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            <div style="display: flex; width: 100%;">
+                <div id="paginationBottom" style="margin-left: auto; margin-top: 3px;"></div>
+            </div>
+        </div>
+        <script src="/search.js"></script>
+        <script type="module"> 
+            import { loadHeader } from '/header.js';
+            document.addEventListener("DOMContentLoaded", () => {
+                loadHeader();
+            });
+        </script> 
+    </body>
+</html>

@@ -6,34 +6,45 @@
         <link rel="stylesheet" href="/style.css" />
     </head>
     <body>
-        <h1 id="pageHeader" class="centered">Game List</h1>
-        <p id="gameInfo"></p>
+        <div id="header"></div>
+        <h3 id="pageHeader" class="content-header"></h3>
+        <div class="content-wrapper">
+            <p id="gameInfo"></p>
             <table id="gamesTable" class="centered-table hidden">
                 <!-- TODO: Filtering of games inside list -->
                 <colgroup>
+                    <col style="width: 0.5%">
                     <col style="width: 5%;">
                     <col style="width: 5%;">
-                    <col style="width: 35;">
+                    <col style="width: 40%;">
+                    <col style="width: 10%;">
                     <col style="width: 10%;">
                     <col style="width: 15%;">
-                    <col style="width: 15%;">
+                    <col style="width: 9.5%">
                 </colgroup>
                 <thead>
                     <tr>
+                        <th></th>
                         <th style="color: blue;">#</th>
                         <th style="color: blue;">Image</th>
                         <th id="titleHead" class="sorter">Title</th>
                         <th id="ratingHead" class="sorter">Rating</th>
                         <th id="statusHead" class="sorter">Status</th>
                         <th id="hoursPlayedHead" class="sorter">Hours Played</th>
+                        <th id="reviewHead" class="sorter">Review</th>
                     </tr>
                 </thead>
                 <tbody id="gamesBody"></tbody>
             </table>
-            
+                
             <div class="hidden" id="message"></div>
-
-        
+        </div>
         <script src="/gameList.js"></script>
+        <script type="module"> 
+            import { loadHeader } from '/header.js';
+            document.addEventListener("DOMContentLoaded", () => {
+                loadHeader();
+            });
+        </script> 
     </body>
 </html>

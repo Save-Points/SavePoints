@@ -1,0 +1,47 @@
+<table class="header-table">
+    <tbody>
+        <tr>
+            <td>
+                <a href="/index.html" class="logo">
+                    <span style="color: #1a73e8">Save</span><span style="color: goldenrod">Points</span>
+                </a>
+            </td>
+            <td style="width: 100%; display: flex; justify-content: flex-end;">
+                <div class="user-menu">
+                    <a href="/login.html"
+                        ><button id="login" class="auth-button hidden">Login</button></a
+                    >
+                    <a href="/signup.html"
+                        ><button id="signup" class="auth-button hidden">
+                            Sign Up
+                        </button>
+                    </a>
+                    <div id="profileContainer" class="hidden">
+                        <a id="picLink" style="object-fit: cover;">
+                        </a>
+                        <button id="profile" class="auth-button"></button>
+                        <div id="userDropdown" class="dropdown">
+                            <a id="profileLink" href="#">Profile</a>
+                            <a href="/settings.html">Settings</a>
+                            <a id="logout">Logout</a>
+                        </div>
+                    </div>
+
+                </div>
+            </td>
+        </tr>
+        <tr style="background: #1a73e8;">
+            <td style="justify-content: flex-end; width: 100%; display: flex;">
+                <div class="search-section">
+                    <select id="searchType" style="cursor: pointer;">
+                        <option value="games">Games</option>
+                        <option value="users">Users</option>
+                    </select>
+                    <input type="text" id="searchInput" placeholder="Search for Games..." />
+                    <button id="searchButton">&#128269;&#65038;</button>
+                </div>
+            </td>
+        </tr>
+    </tbody>
+</table>
+

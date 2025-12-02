@@ -57,21 +57,35 @@ async function ensureGenreCache() {
 }
 
 router.post('/search', injectToken, async (req, res) => {
-    let searchTerm = req.body.searchTerm;
+    let searchTerm = req.body.searchTerm; 
+    let offset = parseInt(req.body.offset) || 0;
+
     if (!searchTerm) {
         return res.status(400).json({ error: 'Search term is required' });
     }
     const accessToken = req.accessToken;
 
     try {
-        let apiResponse = await axios.post(
+        const apiResponse = await axios.post(
             'https://api.igdb.com/v4/games',
-            `fields id, name, game_type, version_parent, cover.url, first_release_date;
+            `fields 
+                id, 
+                name, 
+                game_type, 
+                version_parent, 
+                cover.url, 
+                first_release_date, 
+                involved_companies.company.name, 
+                involved_companies.developer, 
+                involved_companies.publisher;
             search "${searchTerm}";
-            where game_type = 0
+            where game_type = (0,4,8,9,10)
+            & cover != null & cover.url != null
             & version_parent = null
+            & total_rating_count > 0
             & first_release_date != null;
-            limit 20;`,
+            limit 20;
+            offset ${offset};`,
             {
                 headers: {
                     'Client-ID': CLIENT_ID,
@@ -80,29 +94,43 @@ router.post('/search', injectToken, async (req, res) => {
                 },
             },
         );
-        res.json(apiResponse.data);
-    } catch (error) {
-        if (error.response && error.response.status == 401) {
-            console.log('Access token expired, fetching a new one...');
-            await getTwitchToken();
 
-            return res.status(503).json({ error: 'Please try again' });
-        } else {
-            console.log('Error querying IGDB:', error.message);
-            res.status(500).json({ error: 'Error querying IGDB' });
-        }
+        const countResponse = await axios.post(
+            'https://api.igdb.com/v4/games/count',
+            `search "${searchTerm}";
+            where game_type = (0,4,8,9,10)
+            & cover != null & cover.url != null
+            & version_parent = null
+            & total_rating_count > 0
+            & first_release_date != null;`,
+            {
+                headers: {
+                    'Client-ID': CLIENT_ID,
+                    Authorization: `Bearer ${accessToken}`,
+                    Accept: 'application/json',
+                },
+            },
+        );
+
+        res.json({
+            games: apiResponse.data,
+            count: countResponse.data.count,
+        });
+    } catch (error) {
+        console.log('Error querying IGDB:', error.message);
+        res.status(500).json({ error: 'Error querying IGDB' });
     }
 });
 
 router.get('/game/:id', injectToken, async (req, res) => {
-    let gameId = req.params.id;
+    const gameId = req.params.id;
 
     const accessToken = req.accessToken;
 
     try {
         let apiResponse = await axios.post(
             'https://api.igdb.com/v4/games',
-            `fields name, summary, cover.url, aggregated_rating, first_release_date, platforms.name, genres.name;
+            `fields name, summary, cover.url, aggregated_rating, first_release_date, platforms.name, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
             where id = ${gameId};`,
             {
                 headers: {
@@ -114,15 +142,8 @@ router.get('/game/:id', injectToken, async (req, res) => {
         );
         res.json(apiResponse.data[0]);
     } catch (error) {
-        if (error.response && error.response.status == 401) {
-            console.log('Access token expired, fetching a new one...');
-            await getTwitchToken();
-
-            return res.status(503).json({ error: 'Please try again' });
-        } else {
-            console.log('Error querying IGDB:', error.message);
-            res.status(500).json({ error: 'Error querying IGDB' });
-        }
+        console.log('Error querying IGDB:', error.message);
+        res.status(500).json({ error: 'Error querying IGDB' });
     }
 });
 
@@ -137,7 +158,7 @@ router.get('/newreleases', injectToken, async (req, res) => {
     try {
         const query = `fields id, name, cover.url, first_release_date, game_type, version_parent;
                        where first_release_date != null 
-                       & game_type = 0 
+                       & game_type = (0,4,8,9,10)
                        & first_release_date > ${oneMonthAgo}
                        & first_release_date <= ${now}
                        & cover != null;
@@ -229,7 +250,7 @@ router.get('/games', injectToken, async (req, res) => {
     try {
         let filters = [
             'cover != null',
-            'game_type = 0',
+            'game_type = (0,4,8,9,10)',
             'version_parent = null',
             'first_release_date != null',
         ];
