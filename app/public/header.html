@@ -16,7 +16,7 @@
                             Sign Up
                         </button>
                     </a>
-                    <div id="profileContainer" class="hidden" style="display: flex; align-items: center; gap: 15px;">
+                    <div id="profileContainer" class="hidden">
                         <div class="notif-wrapper">
                             <button id="notifBtn">
                                 🔔 <span id="notifBadge">0</span>
@@ -26,13 +26,16 @@
                                 <div id="notifList"></div>
                             </div>
                         </div>
-                        <a id="picLink" style="object-fit: cover;">
-                        </a>
-                        <button id="profile" class="auth-button"></button>
-                        <div id="userDropdown" class="dropdown">
-                            <a id="profileLink" href="#">Profile</a>
-                            <a href="/settings.html">Settings</a>
-                            <a id="logout">Logout</a>
+                        <div class="profile-info-group">
+                            <a id="picLink"></a>
+                            <div style="position: relative;">
+                                <button id="profile" class="auth-button"></button>
+                                <div id="userDropdown" class="dropdown">
+                                    <a id="profileLink" href="#">Profile</a>
+                                    <a href="/settings.html">Settings</a>
+                                    <a id="logout">Logout</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
