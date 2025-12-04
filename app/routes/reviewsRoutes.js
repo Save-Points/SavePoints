@@ -233,6 +233,7 @@ router.post('/:reviewId/reply', authorize, async (req, res) => {
         const reviewOwnerId = reviewRow.rows[0].user_id;
 
         let parentId = null;
+        let targetUserId = reviewOwnerId;
 
         if (parent_reply_id) {
             const pr = await pool.query(
@@ -243,7 +244,7 @@ router.post('/:reviewId/reply', authorize, async (req, res) => {
                 return res.status(400).json({ error: 'Invalid parent reply.' });
             }
             parentId = parent_reply_id;
-            reviewOwnerId = pr.rows[0].user_id;
+            targetUserId = pr.rows[0].user_id;
         }
 
         const insertRes = await pool.query(
@@ -253,7 +254,7 @@ router.post('/:reviewId/reply', authorize, async (req, res) => {
 
         const newReplyId = insertRes.rows[0].id;
 
-        if (userId !== reviewOwnerId) {
+        if (userId !== targetUserId) {
             const sender = await pool.query('SELECT username FROM users WHERE id = $1', [userId]);
             const senderName = sender.rows[0].username;
 
