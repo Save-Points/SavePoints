@@ -55,6 +55,8 @@ async function setupLogin() {
                 
                 picLink.appendChild(img);
                 picLink.href = profileUrl;
+
+                initNotifications();
             }); 
         }
     })
@@ -86,11 +88,85 @@ async function setupLogin() {
     });
 
     document.addEventListener('click', (e) => {
-        if (!profileButton.contains(e.target) && !userDropdown.contains(e.target)) {
-            userDropdown.style.display = 'none';
+        if (profileButton && userDropdown) {
+            if (!profileButton.contains(e.target) && !userDropdown.contains(e.target)) {
+                userDropdown.style.display = 'none';
+            }
+        }
+        const notifBtn = document.getElementById('notifBtn');
+        const notifDropdown = document.getElementById('notifDropdown');
+        if (notifBtn && notifDropdown && notifDropdown.style.display === 'block') {
+             if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
+                notifDropdown.style.display = 'none';
+            }
         }
     });
 }
+
+function initNotifications() {
+    const btn = document.getElementById('notifBtn');
+    const badge = document.getElementById('notifBadge');
+    const dropdown = document.getElementById('notifDropdown');
+    const list = document.getElementById('notifList');
+
+    if (!btn) {
+        return;
+    }
+
+    fetch('/notifications')
+        .then(r => r.json())
+        .then(data => {
+            const unread = data.filter(n => !n.is_read).length;
+            
+            if (unread > 0) {
+                badge.textContent = unread;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+
+            if (data.length === 0) {
+                list.innerHTML = '<div style="padding:15px; color:#777; text-align:center;">No notifications</div>';
+            } else {
+                list.innerHTML = data.map(n => `
+                    <div style="padding: 10px; border-bottom: 1px solid #eee; background: ${n.is_read ? '#fff' : '#e8f0fe'}; cursor:pointer;" 
+                         onclick="handleNotifClick(${n.id}, '${n.link || '#'}', this)">
+                        <p style="margin:0; font-size:0.9rem;">${n.message}</p>
+                        <small style="color:#999; font-size:0.75rem;">${new Date(n.created_at).toLocaleDateString()}</small>
+                    </div>
+                `).join('');
+            }
+        })
+        .catch(err => console.error("Notification Error:", err));
+
+    btn.onclick = (e) => {
+        e.stopPropagation();
+        const isVisible = dropdown.style.display === 'block';
+        dropdown.style.display = isVisible ? 'none' : 'block';
+        
+        const userDropdown = document.getElementById('userDropdown');
+        if(userDropdown) userDropdown.style.display = 'none';
+    };
+}
+
+window.handleNotifClick = async (id, link, element) => {
+    try {
+        await fetch(`/notifications/read/${id}`, { method: 'POST' });
+        element.style.background = '#fff'; 
+        
+        const badge = document.getElementById('notifBadge');
+        let count = parseInt(badge.textContent) || 0;
+        if (count > 0) {
+            count--;
+            badge.textContent = count;
+            if (count === 0) badge.style.display = 'none';
+        }
+
+        if (link && link !== '#' && link !== 'null') {
+            window.location.href = link;
+        }
+    } catch(e) { console.error(e); }
+};
 
 async function setupSearch() {
     const searchInput = document.getElementById('searchInput');

@@ -831,3 +831,55 @@ ul li a.active {
     width: 100%;
     height: 25px;
 }
+
+.notif-wrapper {
+    position: relative;
+}
+
+#notifBtn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.3rem;
+    padding: 5px;
+}
+
+#notifBadge {
+    display: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: red;
+    color: white;
+    border-radius: 50%;
+    padding: 1px 5px;
+    font-size: 0.6rem;
+    font-weight: bold;
+}
+
+#notifDropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: -10px;
+    background: white;
+    border: 1px solid #ccc;
+    width: 300px;
+    z-index: 2000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.notif-header {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    background: #f8f9fa;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+#notifList {
+    max-height: 300px;
+    overflow-y: auto;
+}

@@ -7,6 +7,7 @@ import replyRoutes from './routes/replyRoutes.js';
 import friendRoutes from './routes/friendRoutes.js';
 import userGameRoutes from './routes/userGameRoutes.js';
 import apiRoutes from './routes/apiRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { getTwitchToken } from './middleware/token.js';
@@ -33,6 +34,7 @@ app.use('/api', apiRoutes);
 app.use('/reviews', reviewsRoutes);
 app.use('/replies', replyRoutes);
 app.use('/friends', friendRoutes);
+app.use('/notifications', notificationRoutes);
 
 app.get('/gamelist/:username', (_req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'gameList.html'));

@@ -124,4 +124,12 @@ CREATE TABLE friends (
 CREATE TRIGGER set_friends_updated_at BEFORE UPDATE ON friends FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 
--- TODO: Notifications for friends (was thinking add a table so we can do messages, etc)? 
+CREATE TABLE notifications (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    type VARCHAR(50) NOT NULL,
+    message TEXT NOT NULL,
+    link TEXT,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW()
+);
