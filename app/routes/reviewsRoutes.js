@@ -267,7 +267,10 @@ router.post('/:reviewId/reply', authorize, async (req, res) => {
 
             const link = `/game?id=${gameId}`;
 
-            await sendNotification(targetUserId, 'reply', msg, link);
+            await pool.query(
+                `INSERT INTO notifications (user_id, type, message, link) VALUES ($1, 'reply', $2, $3)`,
+                [targetUserId, msg, link]
+            );
         }
         return res.status(201).json({ success: true });
     } catch (error) {
