@@ -16,27 +16,23 @@
                             Sign Up
                         </button>
                     </a>
-                    <div id="profileContainer" class="hidden">
+                    <div id="profileContainer" class="hidden" style="display: flex; align-items: center; gap: 15px;">
                         <div class="notif-wrapper">
                             <button id="notifBtn">
-                                ✉ <span id="notifBadge">0</span>
+                                🔔 <span id="notifBadge">0</span>
                             </button>
                             <div id="notifDropdown">
                                 <div class="notif-header">Notifications</div>
-                                <button class="mark-all-read" id="markAll">Mark All as Read</button>
                                 <div id="notifList"></div>
                             </div>
                         </div>
-                        <div class="profile-info-group">
-                            <a id="picLink"></a>
-                            <div style="position: relative;">
-                                <button id="profile" class="auth-button"></button>
-                                <div id="userDropdown" class="dropdown">
-                                    <a id="profileLink" href="#">Profile</a>
-                                    <a href="/settings.html">Settings</a>
-                                    <a id="logout">Logout</a>
-                                </div>
-                            </div>
+                        <a id="picLink" style="object-fit: cover;">
+                        </a>
+                        <button id="profile" class="auth-button"></button>
+                        <div id="userDropdown" class="dropdown">
+                            <a id="profileLink" href="#">Profile</a>
+                            <a href="/settings.html">Settings</a>
+                            <a id="logout">Logout</a>
                         </div>
                     </div>
                 </div>
