@@ -15,7 +15,7 @@ h1 {
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 .input {
@@ -65,7 +65,19 @@ th.sort-desc::after {
 #profileContainer {
     display: flex;
     align-items: center;
-    position: relative;
+    gap: 15px;
+}
+
+.profile-info-group {
+    display: flex;
+    align-items: center;
+}
+
+#picLink {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    cursor: pointer;
 }
 
 .auth-button:hover {
@@ -882,4 +894,27 @@ ul li a.active {
 #notifList {
     max-height: 300px;
     overflow-y: auto;
+}
+
+.notif-item {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.notif-item:hover {
+    background: #f9f9f9;
+}
+.notif-item.unread {
+    border-left: 5px solid #007bff;
+    background: #f0f8ff;
+}
+.notif-date {
+    color: #777;
+    font-size: 0.8rem;
+    margin-top: 5px;
+    display: block;
 }

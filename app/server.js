@@ -52,6 +52,10 @@ app.get('/search', (_req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'search.html'));
 });
 
+app.get('/my-notifications', (_req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'notifications.html'));
+});
+
 app.listen(port, hostname, () => {
     console.log(`Listening at http://${hostname}:${port}`);
     (async () => {
