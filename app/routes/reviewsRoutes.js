@@ -269,7 +269,7 @@ router.post('/:reviewId/reply', authorize, async (req, res) => {
 
             await pool.query(
                 `INSERT INTO notifications (user_id, type, message, link) VALUES ($1, 'reply', $2, $3)`,
-                [reviewOwnerId, msg, link]
+                [targetUserId, msg, link]
             );
         }
         return res.status(201).json({ success: true });
