@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { injectToken, getTwitchToken } from '../middleware/token.js';
+import { pool } from '../utils/dbUtils.js';
 import dotenv from 'dotenv';
 import axios from 'axios';
 
@@ -313,6 +314,143 @@ router.get('/games', injectToken, async (req, res) => {
     } catch (error) {
         console.error('Error fetching games:', error.message);
         res.status(500).json({ error: 'Error fetching games' });
+    }
+});
+
+router.get('/mostreviewed', async (req, res) => {
+    const limit = Math.min(parseInt(req.query.limit) || 25, 50);
+    const offset = parseInt(req.query.offset) || 0;
+
+    try {
+        const { rows } = await pool.query(
+            `
+            SELECT r.game_id, COUNT(*) AS review_count
+            FROM reviews r
+            WHERE r.deleted_at IS NULL
+            GROUP BY r.game_id
+            ORDER BY review_count DESC
+            LIMIT $1 OFFSET $2;
+            `,
+            [limit, offset],
+        );
+
+        if (!rows.length) {
+            return res.json({ games: [] });
+        }
+
+        const ids = rows.map((r) => r.game_id);
+
+        const accessToken = await getTwitchToken();
+
+        const query = `
+            fields id, name, cover.url, first_release_date, total_rating_count;
+            where id = (${ids.join(',')}) & cover != null;
+            limit ${ids.length};
+        `;
+
+        const igdbRes = await axios.post(
+            'https://api.igdb.com/v4/games',
+            query,
+            {
+                headers: {
+                    'Client-ID': CLIENT_ID,
+                    Authorization: `Bearer ${accessToken}`,
+                    Accept: 'application/json',
+                },
+            },
+        );
+
+        const igdbGames = igdbRes.data || [];
+
+        igdbGames.sort(
+            (a, b) => ids.indexOf(a.id) - ids.indexOf(b.id),
+        );
+
+        const games = igdbGames.map((g) => ({
+            id: g.id,
+            name: g.name,
+            coverUrl: g.cover
+                ? g.cover.url.replace('t_thumb', 't_cover_big')
+                : 'https://placehold.co/150x200?text=No+Image',
+        }));
+
+        return res.json({ games });
+    } catch (err) {
+        console.error('Error in /api/mostreviewed:', err.message);
+        return res
+            .status(500)
+            .json({ error: 'Failed to load most reviewed games' });
+    }
+});
+
+router.get('/toprated', async (req, res) => {
+    const limit = Math.min(parseInt(req.query.limit) || 25, 50);
+    const offset = parseInt(req.query.offset) || 0;
+
+    try {
+        const { rows } = await pool.query(
+            `
+            SELECT r.game_id, AVG(ug.rating) AS avg_rating, COUNT(*) AS review_count
+            FROM reviews r
+            JOIN user_games ug
+                ON ug.user_id = r.user_id
+               AND ug.game_id = r.game_id
+            WHERE r.deleted_at IS NULL
+              AND ug.rating IS NOT NULL
+            GROUP BY r.game_id
+            HAVING COUNT(*) >= 1
+            ORDER BY avg_rating DESC, review_count DESC
+            LIMIT $1 OFFSET $2;
+            `,
+            [limit, offset],
+        );
+
+        if (!rows.length) {
+            return res.json({ games: [] });
+        }
+
+        const ids = rows.map((r) => r.game_id);
+
+        const accessToken = await getTwitchToken();
+
+        const query = `
+            fields id, name, cover.url, first_release_date, total_rating_count;
+            where id = (${ids.join(',')}) & cover != null;
+            limit ${ids.length};
+        `;
+
+        const igdbRes = await axios.post(
+            'https://api.igdb.com/v4/games',
+            query,
+            {
+                headers: {
+                    'Client-ID': CLIENT_ID,
+                    Authorization: `Bearer ${accessToken}`,
+                    Accept: 'application/json',
+                },
+            },
+        );
+
+        const igdbGames = igdbRes.data || [];
+
+        igdbGames.sort(
+            (a, b) => ids.indexOf(a.id) - ids.indexOf(b.id),
+        );
+
+        const games = igdbGames.map((g) => ({
+            id: g.id,
+            name: g.name,
+            coverUrl: g.cover
+                ? g.cover.url.replace('t_thumb', 't_cover_big')
+                : 'https://placehold.co/150x200?text=No+Image',
+        }));
+
+        return res.json({ games });
+    } catch (err) {
+        console.error('Error in /api/toprated:', err.message);
+        return res
+            .status(500)
+            .json({ error: 'Failed to load top rated games' });
     }
 });
 

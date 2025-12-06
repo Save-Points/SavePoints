@@ -3,6 +3,8 @@ import { generateGameCards } from "./utils/gameCard.js";
 let gameListIndex = 0;
 let currentGenre = 'all';
 let gameListIndexNew = 0;
+let gameListIndexMostReviewed = 0;
+let gameListIndexTopRated = 0;
 
 function fetchGenres() {
     const dropdown = document.getElementById('genreFilter');
@@ -82,6 +84,45 @@ function loadNewReleases() {
         .catch((error) => console.error('Error loading new releases:', error));
 }
 
+function loadMostReviewed() {
+    const url = `/api/mostreviewed?limit=25&offset=${gameListIndexMostReviewed}`;
+    fetch(url)
+        .then((res) => res.json())
+        .then(async (data) => {
+            const container = document.getElementById('mostReviewedContainer');
+            if (!data || !Array.isArray(data.games)) return;
+
+            const cards = await generateGameCards(data.games);
+            for (const card of cards) {
+                container.appendChild(card);
+            }
+            // keep same pagination style you used for new releases
+            gameListIndexMostReviewed += 10;
+        })
+        .catch((error) =>
+            console.error('Error loading most reviewed games:', error),
+        );
+}
+
+function loadTopRated() {
+    const url = `/api/toprated?limit=25&offset=${gameListIndexTopRated}`;
+    fetch(url)
+        .then((res) => res.json())
+        .then(async (data) => {
+            const container = document.getElementById('topRatedContainer');
+            if (!data || !Array.isArray(data.games)) return;
+
+            const cards = await generateGameCards(data.games);
+            for (const card of cards) {
+                container.appendChild(card);
+            }
+            gameListIndexTopRated += 10;
+        })
+        .catch((error) =>
+            console.error('Error loading top rated games:', error),
+        );
+}
+
 function setupScrollButtons() {
     document.querySelectorAll('.carousel-wrapper').forEach(wrapper => {
         const carousel = wrapper.querySelector('.carousel');
@@ -103,5 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchGenres();
     loadGames(true);
     loadNewReleases();
+    loadMostReviewed();
+    loadTopRated();
     setupScrollButtons();
 });

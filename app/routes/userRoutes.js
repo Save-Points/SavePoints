@@ -124,4 +124,34 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// Gets reviews created by a specific user across all games
+router.get('/:userId/reviews', async (req, res) => {
+    const userId = parseInt(req.params.userId);
+
+    if (!userId || Number.isNaN(userId)) {
+        return res.status(400).json({ error: 'Invalid user id.' });
+    }
+
+    try {
+        const { rows } = await pool.query(
+            `
+            SELECT r.id AS review_id, r.game_id, r.review_text, r.created_at, r.updated_at, r.deleted_at, ug.rating AS user_rating
+            FROM reviews r
+            LEFT JOIN user_games ug
+                ON ug.user_id = r.user_id
+               AND ug.game_id = r.game_id
+            WHERE r.user_id = $1
+              AND r.deleted_at IS NULL
+            ORDER BY r.created_at DESC;
+            `,
+            [userId],
+        );
+
+        return res.json(rows);
+    } catch (error) {
+        console.error('Error loading user reviews:', error.message);
+        return res.status(500).json({ error: 'Failed to load user reviews.' });
+    }
+});
+
 export default router;

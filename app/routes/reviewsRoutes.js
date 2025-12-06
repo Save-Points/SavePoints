@@ -5,12 +5,12 @@ import { authorize } from '../middleware/authorize.js';
 const router = Router();
 
 // This is a major helper function to load all of the information for the review page (i.e. reviews, replies, vote counts)
-async function getReviewsTree(gameId) {
+async function getReviewsTree(gameId, currentUserId = null) {
 
     // queries reviews, user info, and votes
     const reviewsResult = await pool.query(
         `
-        SELECT r.id, r.user_id, r.game_id, r.review_text, r.created_at, r.updated_at, r.deleted_at, u.username, u.profile_pic_url, ug.rating, COALESCE(SUM(CASE WHEN rv.vote = 'upvote' THEN 1 ELSE 0 END), 0) AS upvotes, COALESCE(SUM(CASE WHEN rv.vote = 'downvote' THEN 1 ELSE 0 END), 0) AS downvotes
+        SELECT r.id, r.user_id, r.game_id, r.review_text, r.created_at, r.updated_at, r.deleted_at, u.username, u.profile_pic_url, ug.rating, COALESCE(SUM(CASE WHEN rv.vote = 'upvote' THEN 1 ELSE 0 END), 0) AS upvotes, COALESCE(SUM(CASE WHEN rv.vote = 'downvote' THEN 1 ELSE 0 END), 0) AS downvotes, MAX(CASE WHEN rv.user_id = $2 THEN rv.vote END) AS user_vote
         FROM reviews r
         JOIN users u ON u.id = r.user_id
         LEFT JOIN user_games ug ON ug.user_id = r.user_id AND ug.game_id = r.game_id
@@ -19,13 +19,13 @@ async function getReviewsTree(gameId) {
         GROUP BY r.id, u.username, u.profile_pic_url, ug.rating
         ORDER BY r.created_at DESC;
         `,
-        [gameId],
+        [gameId, currentUserId],
     );
 
     // queries replies, user info, and votes
     const repliesResult = await pool.query(
         `
-        SELECT rr.id, rr.review_id, rr.parent_id, rr.user_id, rr.game_id, rr.reply_text, rr.created_at, rr.updated_at, rr.deleted_at, u.username, u.profile_pic_url, COALESCE(SUM(CASE WHEN rv.vote = 'upvote' THEN 1 ELSE 0 END), 0) AS upvotes, COALESCE(SUM(CASE WHEN rv.vote = 'downvote' THEN 1 ELSE 0 END), 0) AS downvotes
+        SELECT rr.id, rr.review_id, rr.parent_id, rr.user_id, rr.game_id, rr.reply_text, rr.created_at, rr.updated_at, rr.deleted_at, u.username, u.profile_pic_url, COALESCE(SUM(CASE WHEN rv.vote = 'upvote' THEN 1 ELSE 0 END), 0) AS upvotes, COALESCE(SUM(CASE WHEN rv.vote = 'downvote' THEN 1 ELSE 0 END), 0) AS downvotes, MAX(CASE WHEN rv.user_id = $2 THEN rv.vote END) AS user_vote
         FROM review_replies rr
         JOIN users u ON u.id = rr.user_id
         LEFT JOIN reply_votes rv ON rv.reply_id = rr.id
@@ -33,7 +33,7 @@ async function getReviewsTree(gameId) {
         GROUP BY rr.id, u.username, u.profile_pic_url
         ORDER BY rr.created_at ASC;
         `,
-        [gameId],
+        [gameId, currentUserId],
     );
 
     const reviews = reviewsResult.rows;
@@ -63,6 +63,7 @@ async function getReviewsTree(gameId) {
             deleted_at: r.deleted_at,
             upvotes: Number(r.upvotes),
             downvotes: Number(r.downvotes),
+            user_vote: r.user_vote,
             replies: [],
         });
     }
@@ -85,6 +86,7 @@ async function getReviewsTree(gameId) {
             deleted_at: rep.deleted_at,
             upvotes: Number(rep.upvotes),
             downvotes: Number(rep.downvotes),
+            user_vote: rep.user_vote,
             replies: [],
         });
     }
@@ -341,6 +343,52 @@ router.post('/:reviewId/vote', authorize, async (req, res) => {
     }
 });
 
+// This get is needed to discern which votes belong to the current user for highlighting
+router.get('/:gameId/votes', authorize, async (req, res) => {
+    const gameId = parseInt(req.params.gameId, 10);
+    const userId = req.user.id;
+
+    if (!gameId || Number.isNaN(gameId)) {
+        return res.status(400).json({ error: 'Invalid game id.' });
+    }
+
+    try {
+        const reviewVotesRes = await pool.query(
+            `
+            SELECT rv.review_id, rv.vote
+            FROM review_votes rv
+            JOIN reviews r ON r.id = rv.review_id
+            WHERE r.game_id = $1 AND rv.user_id = $2
+            `,
+            [gameId, userId],
+        );
+        const replyVotesRes = await pool.query(
+            `
+            SELECT rv.reply_id, rv.vote
+            FROM reply_votes rv
+            JOIN review_replies rr ON rr.id = rv.reply_id
+            WHERE rr.game_id = $1 AND rv.user_id = $2
+            `,
+            [gameId, userId],
+        );
+
+        const reviewVotes = {};
+        for (const row of reviewVotesRes.rows) {
+            reviewVotes[row.review_id] = row.vote; 
+        }
+
+        const replyVotes = {};
+        for (const row of replyVotesRes.rows) {
+            replyVotes[row.reply_id] = row.vote;
+        }
+
+        return res.status(200).json({ reviewVotes, replyVotes });
+    } catch (error) {
+        console.error('Error loading user votes for game', error);
+        return res.status(500).json({ error: 'Failed to load votes.' });
+    }
+});
+
 // This gets all of the reviews with nested replies (Important as reviews with nested replies have a different deletion method than those without replies)
 router.get('/:gameId', async (req, res) => {
     const gameId = parseInt(req.params.gameId, 10);
@@ -350,7 +398,8 @@ router.get('/:gameId', async (req, res) => {
     }
 
     try {
-        const tree = await getReviewsTree(gameId);
+        const currentUserId = req.query.userId ? parseInt(req.query.userId, 10) : null;
+        const tree = await getReviewsTree(gameId, currentUserId);
         return res.status(200).json(tree);
     } catch (error) {
         console.error('Review fetch error', error);
