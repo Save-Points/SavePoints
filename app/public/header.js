@@ -145,7 +145,7 @@ function initNotifications() {
                     list.innerHTML = '<div style="padding:15px; color:#777; text-align:center;">No notifications</div>';
                 } else {
                     list.innerHTML = data.map(n => `
-                        <div style="padding: 10px; border-bottom: 1px solid #eee; background: ${n.is_read ? '#fff' : '#e8f0fe'}; cursor:pointer;" onclick="handleNotifClick('${n.link || '#'}')">
+                        <div class="hover-text ${n.is_read ? 'header-unread-notif' : ''}" style="padding: 10px; border-bottom: 1px solid #eee; cursor:pointer;" onclick="handleNotifClick('${n.link || '#'}')">
                             <p style="margin:0; font-size:0.9rem;">${n.message}</p>
                             <small style="color:#999; font-size:0.75rem;">${new Date(n.created_at).toLocaleDateString()}</small>
                         </div>
