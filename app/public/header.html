@@ -17,16 +17,27 @@
                         </button>
                     </a>
                     <div id="profileContainer" class="hidden">
-                        <a id="picLink" style="object-fit: cover;">
-                        </a>
-                        <button id="profile" class="auth-button"></button>
-                        <div id="userDropdown" class="dropdown">
-                            <a id="profileLink" href="#">Profile</a>
-                            <a href="/settings.html">Settings</a>
-                            <a id="logout">Logout</a>
+                        <div class="notif-wrapper">
+                            <button id="notifBtn">
+                                ✉ <span id="notifBadge">0</span>
+                            </button>
+                            <div id="notifDropdown">
+                                <div class="notif-header">Notifications</div>
+                                <div id="notifList"></div>
+                            </div>
+                        </div>
+                        <div class="profile-info-group">
+                            <a id="picLink"></a>
+                            <div style="position: relative;">
+                                <button id="profile" class="auth-button"></button>
+                                <div id="userDropdown" class="dropdown">
+                                    <a id="profileLink" href="#">Profile</a>
+                                    <a href="/settings.html">Settings</a>
+                                    <a id="logout">Logout</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
-
                 </div>
             </td>
         </tr>
