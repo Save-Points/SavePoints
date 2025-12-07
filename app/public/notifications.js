@@ -16,7 +16,7 @@ async function loadAllNotifications() {
         }
 
         container.innerHTML = '';
-        data.forEach(n => {
+        data.rows.forEach(n => {
             const div = document.createElement('div');
             div.className = `notif-item ${n.is_read ? '' : 'unread'}`;
             
@@ -41,5 +41,14 @@ async function loadAllNotifications() {
         container.innerHTML = '<p class="error-message">Failed to load notifications.</p>';
     }
 }
+
+const markAll = document.getElementById('markAll');
+
+markAll.addEventListener('click', async () => {
+    try {
+        await fetch('/notifications/mark-all-read', { method: 'POST' });
+        window.location.reload();
+    } catch(err) { console.error(err); }
+});
 
 document.addEventListener('DOMContentLoaded', loadAllNotifications);

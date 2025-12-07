@@ -4,6 +4,7 @@ CREATE DATABASE savepoints;
 CREATE TYPE privacy_type AS ENUM('public', 'private', 'friends_only');
 CREATE TYPE friend_status AS ENUM ('pending', 'accepted');
 CREATE TYPE user_game_status AS ENUM('completed', 'playing', 'planned', 'wishlisted', 'dropped', 'on_hold');
+CREATE TYPE notification_type AS ENUM ('friend_accept', 'friend_request', 'upvote', 'reply', '')
 
 CREATE TYPE vote_type AS ENUM('upvote', 'downvote');
 
@@ -127,7 +128,7 @@ CREATE TRIGGER set_friends_updated_at BEFORE UPDATE ON friends FOR EACH ROW EXEC
 CREATE TABLE notifications (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
-    type VARCHAR(50) NOT NULL,
+    type notification_type NOT NULL,
     message TEXT NOT NULL,
     link TEXT,
     is_read BOOLEAN DEFAULT FALSE,

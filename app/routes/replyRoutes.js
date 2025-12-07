@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { pool } from '../utils/dbUtils.js';
+import { pool, sendNotification } from '../utils/dbUtils.js';
 import { authorize } from '../middleware/authorize.js';
 
 const router = Router();
@@ -127,11 +127,7 @@ router.post('/:replyId/vote', authorize, async (req, res) => {
 
                         if (exists.rows.length === 0) {
                             const link = `/game?id=${gameId}`;
-
-                            await pool.query(
-                                `INSERT INTO notifications (user_id, type, message, link) VALUES ($1, 'upvote', $2, $3)`,
-                                [ownerId, `${senderName} upvoted your comment`, link]
-                            );
+                            await sendNotification(ownerId, 'upvote', `${senderName} upvoted your comment`, link);
                         }
                     }
                 }

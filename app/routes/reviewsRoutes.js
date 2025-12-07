@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { pool } from '../utils/dbUtils.js';
+import { pool, sendNotification } from '../utils/dbUtils.js';
 import { authorize } from '../middleware/authorize.js';
 
 const router = Router();
@@ -267,10 +267,7 @@ router.post('/:reviewId/reply', authorize, async (req, res) => {
 
             const link = `/game?id=${gameId}`;
 
-            await pool.query(
-                `INSERT INTO notifications (user_id, type, message, link) VALUES ($1, 'reply', $2, $3)`,
-                [targetUserId, msg, link]
-            );
+            await sendNotification(targetUserId, 'reply', msg, link);
         }
         return res.status(201).json({ success: true });
     } catch (error) {
@@ -327,11 +324,7 @@ router.post('/:reviewId/vote', authorize, async (req, res) => {
 
                         if (exists.rows.length === 0) {
                             const link = `/game?id=${gameId}#review-${reviewId}`;
-
-                            await pool.query(
-                                `INSERT INTO notifications (user_id, type, message, link) VALUES ($1, 'upvote', $2, $3)`,
-                                [ownerId, `${senderName} upvoted your review`, link]
-                            );
+                            await sendNotification(ownerId, 'upvote', `${senderName} upvoted your review`, link);
                         }
                     }
                 }

@@ -927,3 +927,12 @@ ul li a.active {
     border-left: 5px solid #007bff;
     background: #f0f8ff;
 }
+
+.mark-all-read {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    border-bottom: 1px solid #eee;
+}
