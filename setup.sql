@@ -4,7 +4,7 @@ CREATE DATABASE savepoints;
 CREATE TYPE privacy_type AS ENUM('public', 'private', 'friends_only');
 CREATE TYPE friend_status AS ENUM ('pending', 'accepted');
 CREATE TYPE user_game_status AS ENUM('completed', 'playing', 'planned', 'wishlisted', 'dropped', 'on_hold');
-CREATE TYPE notification_type AS ENUM ('friend_accept', 'friend_request', 'upvote', 'reply', '')
+CREATE TYPE notification_type AS ENUM ('friend_accept', 'friend_request', 'upvote', 'reply')
 
 CREATE TYPE vote_type AS ENUM('upvote', 'downvote');
 
