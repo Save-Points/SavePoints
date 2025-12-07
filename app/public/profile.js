@@ -17,6 +17,8 @@ let userInfo = {
     downvotes: 0,
 }
 
+let currentProfileUserId = null;
+
 const contentDiv = document.getElementById('contentDiv');
 const overviewTab = document.getElementById('overview');
 const reviewsTab = document.getElementById('reviews');
@@ -600,6 +602,125 @@ async function loadFriendsTab() {
     contentDiv.appendChild(friendsContainer);
 }
 
+async function loadReviewsTab() {
+    contentDiv.textContent = '';
+
+    try {
+        let userId = currentProfileUserId;
+
+        if (!userId) {
+            const endpoint = usernameParam ? `/users/view/${usernameParam}` : '/users/view';
+            const userRes = await fetch(endpoint);
+
+            if (!userRes.ok) {
+                const p = document.createElement('p');
+                p.className = 'empty-msg';
+                p.textContent = 'Unable to load reviews.';
+                contentDiv.appendChild(p);
+                return;
+            }
+
+            const user = await userRes.json();
+            userId = user.id;
+            currentProfileUserId = userId;
+        }
+
+        const res = await fetch(`/users/${userId}/reviews`);
+        if (!res.ok) {
+            const p = document.createElement('p');
+            p.className = 'empty-msg';
+            p.textContent = 'Failed to load reviews.';
+            contentDiv.appendChild(p);
+            return;
+        }
+
+        const reviews = await res.json();
+
+        if (!reviews || reviews.length === 0) {
+            const p = document.createElement('p');
+            p.className = 'empty-msg';
+            p.textContent = 'No reviews yet.';
+            contentDiv.appendChild(p);
+            return;
+        }
+        const gameIds = [...new Set(reviews.map(r => r.game_id))];
+        const idStr = gameIds.join(',');
+
+        const gamesRes = await fetch(`/api/games?ids=${idStr}`);
+        if (!gamesRes.ok) {
+            const p = document.createElement('p');
+            p.className = 'empty-msg';
+            p.textContent = 'Failed to load game info for reviews.';
+            contentDiv.appendChild(p);
+            return;
+        }
+
+        const gamesData = await gamesRes.json();
+        const games = gamesData.games || [];
+
+        const gameMap = new Map();
+        games.forEach(g => gameMap.set(g.id, g));
+
+        const header = document.createElement('h2');
+        header.classList = 'list-header';
+        header.textContent = 'Reviews';
+        header.style.marginTop = '0';
+        contentDiv.appendChild(header);
+
+        const list = document.createElement('div');
+        list.className = 'reviews-list';
+        contentDiv.appendChild(list);
+
+        reviews.forEach((rev) => {
+            const g = gameMap.get(rev.game_id);
+
+            const card = document.createElement('div');
+            card.className = 'review-card clickable-review-card';
+            card.style.cursor = 'pointer';
+
+            card.addEventListener('click', () => {
+                window.location.href = `/game.html?id=${rev.game_id}`;
+            });
+
+            const topRow = document.createElement('div');
+            topRow.className = 'review-header-line';
+
+            const title = document.createElement('strong');
+            title.textContent = g ? g.name : `Game ID ${rev.game_id}`;
+            topRow.appendChild(title);
+
+            const ratingSpan = document.createElement('span');
+            ratingSpan.className = 'review-meta';
+            const rating =
+                rev.user_rating !== null && rev.user_rating !== undefined
+                    ? rev.user_rating
+                    : 'N/A';
+            ratingSpan.textContent = ` — Rating: ${+rating}/10`;
+            topRow.appendChild(ratingSpan);
+
+            const meta = document.createElement('div');
+            meta.className = 'review-meta';
+            const date = new Date(rev.created_at);
+            meta.textContent = date.toLocaleString();
+
+            const textP = document.createElement('p');
+            textP.textContent = rev.review_text || '';
+
+            card.appendChild(topRow);
+            card.appendChild(meta);
+            card.appendChild(textP);
+
+            list.appendChild(card);
+        });
+    } catch (error) {
+        console.error('Error loading reviews tab:', error);
+        const p = document.createElement('p');
+        p.className = 'empty-msg';
+        p.textContent = 'Error loading reviews.';
+        contentDiv.appendChild(p);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     await loadProfile();
     await loadProfileGames();
@@ -616,6 +737,11 @@ function setActive(elem) {
 overviewTab.addEventListener('click', async () => {
     await loadOverviewTab();
     setActive(overviewTab);
+});
+
+reviewsTab.addEventListener('click', async () => {
+    await loadReviewsTab();
+    setActive(reviewsTab);
 });
 
 friendsTab.addEventListener('click', async () => {

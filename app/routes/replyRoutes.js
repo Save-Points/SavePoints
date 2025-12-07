@@ -127,7 +127,11 @@ router.post('/:replyId/vote', authorize, async (req, res) => {
 
                         if (exists.rows.length === 0) {
                             const link = `/game?id=${gameId}`;
-                            await sendNotification(ownerId, 'upvote', `${senderName} upvoted your comment`, link);
+
+                            await pool.query(
+                                `INSERT INTO notifications (user_id, type, message, link) VALUES ($1, 'upvote', $2, $3)`,
+                                [ownerId, `${senderName} upvoted your comment`, link]
+                            );
                         }
                     }
                 }

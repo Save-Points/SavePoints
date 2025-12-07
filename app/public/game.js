@@ -108,11 +108,13 @@ async function setupReviewBox() {
     const user = await checkLogin();
     if (!user) {
         userReviewSection.style.display = 'none';
+        loadReviews();
         return;
     }
 
     const hasReview = await hasActiveReview();
     userReviewSection.style.display = hasReview ? 'none' : 'block';
+    loadReviews();
 }
 
 // This is a helper that renders the reviews and the replies for the render functions
@@ -131,6 +133,8 @@ function renderReply(reply, depth) {
     const isOwner = currentUser && currentUser.username === reply.username;
     const edited = reply.updated_at && reply.updated_at !== reply.created_at;
 
+    const userVote = reply.user_vote === 'upvote' ? 'up' : reply.user_vote === 'downvote' ? 'down' : null;
+
     return `
         <div class="review-card" style="margin-left: ${indent}px" data-reply-id="${reply.id}">
             <div class="review-header-line">
@@ -142,8 +146,8 @@ function renderReply(reply, depth) {
             </div>
             <p>${escapeHtml(reply.display_text)}</p>
             <div class="review-actions">
-                <button class="vote-btn" data-action="reply-upvote" data-reply-id="${reply.id}">▲ ${reply.upvotes}</button>
-                <button class="vote-btn" data-action="reply-downvote" data-reply-id="${reply.id}">▼ ${reply.downvotes}</button>
+                <button class="vote-btn${userVote === 'up' ? ' vote-btn-active-up' : ''}" data-action="reply-upvote" data-reply-id="${reply.id}">▲ ${reply.upvotes}</button>
+                <button class="vote-btn${userVote === 'down' ? ' vote-btn-active-down' : ''}" data-action="reply-downvote" data-reply-id="${reply.id}">▼ ${reply.downvotes}</button>
                 <button class="small-btn" data-action="reply-reply" data-reply-id="${reply.id}">Reply</button>
                 ${isOwner ? `<button class="small-btn" data-action="reply-edit" data-reply-id="${reply.id}">Edit</button>` : "" }
                 ${isOwner ? `<button class="small-btn" data-action="reply-delete" data-reply-id="${reply.id}">Delete</button>` : "" }
@@ -180,6 +184,8 @@ function renderReview(review) {
     const ratingText =
         review.rating !== null && review.rating !== undefined ? `${+review.rating}/10` : '-';
 
+    const userVote = review.user_vote === 'upvote' ? 'up' : review.user_vote === 'downvote' ? 'down' : null;
+
     return `
         <div class="review-card" data-review-id="${review.id}">
             <div class="review-header-line">
@@ -193,8 +199,8 @@ function renderReview(review) {
             </div>
             <p>${escapeHtml(review.display_text)}</p>
             <div class="review-actions">
-                <button class="vote-btn" data-action="review-upvote" data-review-id="${review.id}">▲ ${review.upvotes}</button>
-                <button class="vote-btn" data-action="review-downvote" data-review-id="${review.id}">▼ ${review.downvotes}</button>
+                <button class="vote-btn${userVote === 'up' ? ' vote-btn-active-up' : ''}" data-action="review-upvote" data-review-id="${review.id}">▲ ${review.upvotes}</button>
+                <button class="vote-btn${userVote === 'down' ? ' vote-btn-active-down' : ''}" data-action="review-downvote" data-review-id="${review.id}">▼ ${review.downvotes}</button>
                 <button class="small-btn" data-action="review-reply" data-review-id="${review.id}">Reply</button>${isOwner ? `
                     <button class="small-btn" data-action="review-edit" data-review-id="${review.id}">Edit</button>
                     <button class="small-btn" data-action="review-delete" data-review-id="${review.id}">Delete</button>` : ''}
@@ -219,7 +225,8 @@ function renderReview(review) {
 }
 
 function loadReviews() {
-    fetch(`/reviews/${gameId}`)
+    const userId = currentUser ? currentUser.id : '';
+    fetch(`/reviews/${gameId}?userId=${userId}`)
         .then((r) => r.json())
         .then((reviews) => {
             if (!Array.isArray(reviews)) {
@@ -448,4 +455,3 @@ submitButton.addEventListener('click', () => {
 })
 
 setupReviewBox();
-loadReviews();
