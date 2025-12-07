@@ -24,5 +24,6 @@ export async function sendNotification(targetId, type, message, link) {
         )
     } catch (error) {
         console.error('SEND NOTIFICATION FAILED', error);
+        throw error;
     }
 }
