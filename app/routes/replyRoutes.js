@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { pool } from '../utils/dbUtils.js';
+import { pool, sendNotification } from '../utils/dbUtils.js';
 import { authorize } from '../middleware/authorize.js';
 
 const router = Router();
@@ -109,6 +109,29 @@ router.post('/:replyId/vote', authorize, async (req, res) => {
                 `,
                 [userId, replyId, vote],
             );
+
+            if (vote === 'upvote') {
+                const replyRes = await pool.query('SELECT user_id, game_id FROM review_replies WHERE id = $1', [replyId]);
+                if (replyRes.rows.length > 0) {
+                    const ownerId = replyRes.rows[0].user_id;
+                    const gameId = replyRes.rows[0].game_id;
+                    
+                    if (ownerId !== userId) {
+                        const sender = await pool.query('SELECT username FROM users WHERE id = $1', [userId]);
+                        const senderName = sender.rows[0].username;
+
+                        const exists = await pool.query(
+                            `SELECT 1 FROM notifications WHERE user_id = $1 AND type = 'upvote' AND message LIKE $2`,
+                            [ownerId, `${senderName} upvoted your comment%`]
+                        );
+
+                        if (exists.rows.length === 0) {
+                            const link = `/game?id=${gameId}`;
+                            await sendNotification(ownerId, 'upvote', `${senderName} upvoted your comment`, link);
+                        }
+                    }
+                }
+            }
         }
 
         return res.status(200).json({ success: true });

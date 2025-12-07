@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { pool } from '../utils/dbUtils.js';
+import { pool, sendNotification } from '../utils/dbUtils.js';
 import { authorize } from '../middleware/authorize.js';
 
 const router = Router();
@@ -221,7 +221,7 @@ router.post('/:reviewId/reply', authorize, async (req, res) => {
 
     try {
         const reviewRow = await pool.query(
-            'SELECT game_id FROM reviews WHERE id = $1',
+            'SELECT game_id, user_id FROM reviews WHERE id = $1',
             [reviewId],
         );
 
@@ -230,27 +230,45 @@ router.post('/:reviewId/reply', authorize, async (req, res) => {
         }
 
         const gameId = reviewRow.rows[0].game_id;
+        const reviewOwnerId = reviewRow.rows[0].user_id;
 
         let parentId = null;
+        let targetUserId = reviewOwnerId;
+
         if (parent_reply_id) {
             const pr = await pool.query(
-                'SELECT id FROM review_replies WHERE id = $1 AND review_id = $2',
+                'SELECT id, user_id FROM review_replies WHERE id = $1 AND review_id = $2',
                 [parent_reply_id, reviewId],
             );
             if (pr.rows.length === 0) {
                 return res.status(400).json({ error: 'Invalid parent reply.' });
             }
             parentId = parent_reply_id;
+            targetUserId = pr.rows[0].user_id;
         }
 
-        await pool.query(
-            `
-            INSERT INTO review_replies (review_id, parent_id, user_id, game_id, reply_text)
-            VALUES ($1, $2, $3, $4, $5);
-            `,
-            [reviewId, parentId, userId, gameId, reply_text || ''],
+        const insertRes = await pool.query(
+            `INSERT INTO review_replies (review_id, parent_id, user_id, game_id, reply_text) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+            [reviewId, parentId, userId, gameId, reply_text || '']
         );
 
+        const newReplyId = insertRes.rows[0].id;
+
+        if (userId !== targetUserId) {
+            const sender = await pool.query('SELECT username FROM users WHERE id = $1', [userId]);
+            const senderName = sender.rows[0].username;
+
+            let msg;
+            if (parentId) {
+                msg = `${senderName} replied to your comment`;
+            } else {
+                msg = `${senderName} replied to your review`;
+            }
+
+            const link = `/game?id=${gameId}`;
+
+            await sendNotification(targetUserId, 'reply', msg, link);
+        }
         return res.status(201).json({ success: true });
     } catch (error) {
         console.error('Reply insert error', error);
@@ -288,6 +306,29 @@ router.post('/:reviewId/vote', authorize, async (req, res) => {
                 `,
                 [userId, reviewId, vote],
             );
+
+            if (vote === 'upvote') {
+                const reviewRes = await pool.query('SELECT user_id, game_id FROM reviews WHERE id = $1', [reviewId]);
+                if (reviewRes.rows.length > 0) {
+                    const ownerId = reviewRes.rows[0].user_id;
+                    const gameId = reviewRes.rows[0].game_id;
+
+                    if (ownerId !== userId) {
+                        const sender = await pool.query('SELECT username FROM users WHERE id = $1', [userId]);
+                        const senderName = sender.rows[0].username;
+
+                        const exists = await pool.query(
+                            `SELECT 1 FROM notifications WHERE user_id = $1 AND type = 'upvote' AND message LIKE $2`,
+                            [ownerId, `${senderName} upvoted your review%`]
+                        );
+
+                        if (exists.rows.length === 0) {
+                            const link = `/game?id=${gameId}#review-${reviewId}`;
+                            await sendNotification(ownerId, 'upvote', `${senderName} upvoted your review`, link);
+                        }
+                    }
+                }
+            }
         }
 
         return res.status(200).json({ success: true });

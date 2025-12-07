@@ -15,20 +15,15 @@ pool.connect().then(() =>
     console.log(`Connected to database: ${process.env.DB_DATABASE}`),
 );
 
-export async function getUserId(username) {
+export async function sendNotification(targetId, type, message, link) {
     try {
-        const result = await pool.query(
-            'SELECT id FROM users WHERE username = $1',
-            [username],
-        );
-
-        if (result.rows.length == 0) {
-            return null;
-        }
-
-        return result.rows[0].id;
+        await pool.query(
+            `INSERT INTO notifications (user_id, type, message, link) 
+             VALUES ($1, $2, $3, $4)`,
+            [targetId, type, message, link]
+        )
     } catch (error) {
-        console.log('GET USER ID FAILED', error);
+        console.error('SEND NOTIFICATION FAILED', error);
         throw error;
     }
 }

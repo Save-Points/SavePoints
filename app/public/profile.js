@@ -54,7 +54,7 @@ async function checkFriendStatus(targetUserId) {
         } else if (data.status === 'sent') {
             btn.textContent = 'Cancel Request';
             btn.classList.add('btn-red');
-            btn.onclick = () => removeConnection(targetUserId);
+            btn.onclick = () => removeFriendRequest(targetUserId);
 
         } else if (data.status === 'received') {
             const wrapper = document.createElement('div');
@@ -152,6 +152,31 @@ async function removeConnection(targetId) {
     }
 }
 
+async function removeFriendRequest(targetId) {
+    // TODO: do we want to keep this sure message, same with function on top
+    if (!confirm("Are you sure?")) return;
+
+    try {
+        const res = await fetch(`/friends/${targetId}`, {
+            method: 'DELETE',
+        });
+
+        await fetch(`/notifications/remove-friend-request/${targetId}`, {
+            method: 'DELETE',
+        });
+
+        if (res.ok) {
+            checkFriendStatus(targetId); 
+            const container = document.getElementById('friendsContainer');
+            if (container && container.children.length > 0) {
+                window.location.reload();
+            }
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
 async function loadFriends(userId) {
     const container = document.getElementById('friendsContainer');
     try {
@@ -203,41 +228,7 @@ async function loadProfile() {
             return;
         }
 
-        if (response.status === 404) {
-            document.getElementById('username').textContent = "User not found";
-            document.getElementById('bio').style.display = 'none';
-            
-            const settingsBtn = document.querySelector('a[href="/settings.html"]');
-            if(settingsBtn) settingsBtn.classList.add('hidden');
-            return;
-        }
-
         const user = await response.json();
-
-        // Check if its the user themselves (hides settings button etc.)
-        try {
-            const meRes = await fetch('/users/current');
-            const settingsBtn = document.querySelector('a[href="/settings.html"]');
-
-            if (meRes.ok) {
-                const me = await meRes.json();
-                if (me.id !== user.id) {
-                    if(settingsBtn) {
-                        settingsBtn.classList.add('hidden');
-                    }
-                } else {
-                    if(settingsBtn) {
-                        settingsBtn.classList.remove('hidden');
-                    }
-                }
-            } else {
-                 if(settingsBtn) {
-                    settingsBtn.classList.add('hidden');
-                }
-            }
-        } catch (e) { 
-            console.error("Auth check failed", e); 
-        }
 
         document.getElementById('profileName').textContent = `${user.username}'s Profile`;
 

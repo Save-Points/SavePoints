@@ -4,6 +4,7 @@ CREATE DATABASE savepoints;
 CREATE TYPE privacy_type AS ENUM('public', 'private', 'friends_only');
 CREATE TYPE friend_status AS ENUM ('pending', 'accepted');
 CREATE TYPE user_game_status AS ENUM('completed', 'playing', 'planned', 'wishlisted', 'dropped', 'on_hold');
+CREATE TYPE notification_type AS ENUM ('friend_accept', 'friend_request', 'upvote', 'reply')
 
 CREATE TYPE vote_type AS ENUM('upvote', 'downvote');
 
@@ -124,4 +125,12 @@ CREATE TABLE friends (
 CREATE TRIGGER set_friends_updated_at BEFORE UPDATE ON friends FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 
--- TODO: Notifications for friends (was thinking add a table so we can do messages, etc)? 
+CREATE TABLE notifications (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    type notification_type NOT NULL,
+    message TEXT NOT NULL,
+    link TEXT,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT NOW()
+);

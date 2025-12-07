@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>Notifications</title>
+        <link rel="stylesheet" href="/style.css" />
+    </head>
+    <body>
+       <div id="header"></div>
+        <h3 class="content-header">All Notifications</h3>
+        <div class="content-wrapper">
+            <button class="mark-all-read" id="markAll">Mark All as Read</button>
+            <div id="fullNotifList" style="margin-top: 20px;">
+                <p style="color: #777; text-align: center;">Loading...</p>
+            </div>
+        </div>
+
+        <script type="module"> 
+            import { loadHeader } from '/header.js';
+            document.addEventListener("DOMContentLoaded", () => {
+                loadHeader(); 
+            });
+        </script>
+        
+        <script src="/notifications.js"></script>
+    </body>
+</html>

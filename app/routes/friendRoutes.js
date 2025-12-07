@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { pool } from '../utils/dbUtils.js';
+import { pool, sendNotification } from '../utils/dbUtils.js';
 import { authorize } from '../middleware/authorize.js';
 
 const router = Router();
@@ -51,6 +51,11 @@ router.post('/request', authorize, async (req, res) => {
             'INSERT INTO friends (requester_id, receiver_id) VALUES ($1, $2)',
             [myId, targetId]
         );
+
+        const sender = await pool.query('SELECT username FROM users WHERE id = $1', [myId]);
+        const senderName = sender.rows[0].username;
+
+        await sendNotification(targetId, 'friend_request', `${senderName} sent you a friend request!`, `/profile/${senderName}`);
         res.json({ success: true });
     } catch (error) {
         console.error('Friend request error', error);
@@ -68,6 +73,12 @@ router.post('/accept', authorize, async (req, res) => {
              WHERE requester_id = $1 AND receiver_id = $2 AND status = 'pending'`,
             [requesterId, myId]
         );
+
+        const acceptorRes = await pool.query('SELECT username FROM users WHERE id = $1', [myId]);
+        const acceptorName = acceptorRes.rows[0].username;
+
+        await sendNotification(requesterId, 'friend_accept',  `${acceptorName} accepted your friend request!`, `/profile/${acceptorName}`);
+    
         res.json({ success: true });
     } catch (error) {
         console.error('Friend accept error', error);
