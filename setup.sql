@@ -128,7 +128,7 @@ CREATE TRIGGER set_friends_updated_at BEFORE UPDATE ON friends FOR EACH ROW EXEC
 CREATE TABLE notifications (
     id SERIAL PRIMARY KEY,
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
-    type VARCHAR(50) NOT NULL,
+    type notification_type NOT NULL,
     message TEXT NOT NULL,
     link TEXT,
     is_read BOOLEAN DEFAULT FALSE,
