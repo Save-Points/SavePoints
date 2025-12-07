@@ -55,11 +55,7 @@ router.post('/request', authorize, async (req, res) => {
         const sender = await pool.query('SELECT username FROM users WHERE id = $1', [myId]);
         const senderName = sender.rows[0].username;
 
-        await pool.query(
-            `INSERT INTO notifications (user_id, type, message, link) 
-             VALUES ($1, 'friend_request', $2, $3)`,
-            [targetId, `${senderName} sent you a friend request!`, `/profile/${senderName}`]
-        );
+        await sendNotification(targetId, 'friend_request', `${senderName} sent you a friend request!`, `/profile/${senderName}`);
 
         res.json({ success: true });
     } catch (error) {
@@ -82,11 +78,7 @@ router.post('/accept', authorize, async (req, res) => {
         const acceptorRes = await pool.query('SELECT username FROM users WHERE id = $1', [myId]);
         const acceptorName = acceptorRes.rows[0].username;
 
-        await pool.query(
-            `INSERT INTO notifications (user_id, type, message, link) 
-             VALUES ($1, 'friend_accept', $2, $3)`,
-            [requesterId, `${acceptorName} accepted your friend request!`, `/profile/${acceptorName}`]
-        );
+        await sendNotification(requesterId, 'friend_accept', `${acceptorName} accepted your friend request!`, `/profile/${acceptorName}`);
 
         res.json({ success: true });
     } catch (error) {

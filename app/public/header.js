@@ -124,6 +124,16 @@ function initNotifications() {
         dropdown.appendChild(viewAllContainer);
     }
 
+    const markAll = document.getElementById('markAll');
+
+    markAll.addEventListener('click', async () => {
+        try {
+            await fetch('/notifications/mark-all-read', { method: 'POST' });
+            badge.style.display = 'none'; 
+            fetchAndRender();
+        } catch(err) { console.error(err); }
+    });
+
     if (!btn) {
         return;
     }
@@ -132,7 +142,7 @@ function initNotifications() {
         fetch('/notifications')
             .then(r => r.json())
             .then(data => {
-                const unread = data.filter(n => !n.is_read).length;
+                const unread = data.unreadCount;
                 
                 if (unread > 0) {
                     badge.textContent = unread;
@@ -141,11 +151,11 @@ function initNotifications() {
                     badge.style.display = 'none';
                 }
 
-                if (data.length === 0) {
+                if (data.rows.length === 0) {
                     list.innerHTML = '<div style="padding:15px; color:#777; text-align:center;">No notifications</div>';
                 } else {
-                    list.innerHTML = data.map(n => `
-                        <div style="padding: 10px; border-bottom: 1px solid #eee; background: ${n.is_read ? '#fff' : '#e8f0fe'}; cursor:pointer;" 
+                    list.innerHTML = data.rows.map(n => `
+                        <div class="hover-text ${n.is_read ? '' : 'header-unread-notif'}" style="padding: 10px; border-bottom: 1px solid #eee; cursor:pointer;"
                              onclick="handleNotifClick(${n.id}, '${n.link || ''}', this)">
                             <p style="margin:0; font-size:0.9rem;">${n.message}</p>
                             <small style="color:#999; font-size:0.75rem;">${new Date(n.created_at).toLocaleDateString()}</small>
@@ -166,15 +176,6 @@ function initNotifications() {
             dropdown.style.display = 'block';
             const userDropdown = document.getElementById('userDropdown');
             if(userDropdown) userDropdown.style.display = 'none';
-
-            const currentCount = parseInt(badge.textContent) || 0;
-            if (currentCount > 0) {
-                try {
-                    await fetch('/notifications/mark-all-read', { method: 'POST' });
-                    badge.style.display = 'none'; 
-                    fetchAndRender();
-                } catch(err) { console.error(err); }
-            }
         } else {
             dropdown.style.display = 'none';
         }
@@ -185,6 +186,7 @@ window.handleNotifClick = async (id, link, element) => {
     try {
         await fetch(`/notifications/read/${id}`, { method: 'POST' });
         element.style.background = '#fff'; 
+        element.classList.remove('header-unread-notif');
         
         const badge = document.getElementById('notifBadge');
         let count = parseInt(badge.textContent) || 0;
