@@ -360,7 +360,7 @@ async function loadReviewsTab() {
             const body = await reviewRes.json().catch(() => ({}));
             alert(body.error || 'Failed to submit review.');
         }
-        loadReviews();
+        window.location.reload();
     });
 
     reviewsListDiv.addEventListener('click', async (e) => {
@@ -404,7 +404,7 @@ async function loadReviewsTab() {
             } else {
                 box.classList.remove("hidden");
             }
-            window.location.reload();
+            loadReviews();
             return;
         }
 
@@ -434,7 +434,7 @@ async function loadReviewsTab() {
                 return;
             }
 
-            window.location.reload();
+            loadReviews();
             return;
         }
 
@@ -456,8 +456,11 @@ async function loadReviewsTab() {
                 return;
             }
 
-            // if (isReview) await setupReviewBox();
-            window.location.reload();
+            if (isReview) {
+                window.location.reload();
+            } else {
+                loadReviews();
+            }
             return;
         }
 
