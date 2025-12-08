@@ -49,7 +49,7 @@ export async function attachStatistics(games) {
                 COUNT(*) FILTER (WHERE status='on_hold') AS on_hold_count,
                 COUNT(*) AS entries,
                 SUM(hours_played) AS total_hours_played,
-                AVG(NULLIF(hours_played,0)) FILTER (WHERE status NOT IN ('planned', 'wishlisted')) AS avg_hours_played
+                AVG(hours_played) AS avg_hours_played
              FROM user_games 
              WHERE game_id = ANY($1)
              GROUP BY game_id

@@ -206,11 +206,13 @@ async function loadGames() {
         } else {
             const dropdown = createStatusDropdown(async (newStatus) => {
                 statusButton.textContent = `${formatStatus(newStatus)} ▼`;
-
+                statusButton.style.backgroundColor = '';
                 if (newStatus === 'on_hold') {
-                    statusButton.className = 'action-btn on-hold';
+                    statusButton.classList = 'action-btn on-hold';
+                    statusButton.style.color = 'black';
                 } else {
-                    statusButton.className = `action-btn ${newStatus}`;
+                    statusButton.classList = 'action-btn' + ` ${newStatus}`;
+                     statusButton.style.color = 'white';
                 }
 
                 await fetch('/usergames/add', {
@@ -242,8 +244,6 @@ async function loadGames() {
         gamesBody.appendChild(row);
     }
 }
-
-
 
 function createStatusDropdown(onSelect) {
     const dropdown = document.createElement('ul');

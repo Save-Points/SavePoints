@@ -218,7 +218,7 @@ router.get('/genres', injectToken, async (req, res) => {
 });
 
 router.get('/games', injectToken, async (req, res) => {
-    const limit = Math.min(parseInt(req.query.limit) || 10, 100);
+    const limit = parseInt(req.query.limit) || 500;
     const offset = parseInt(req.query.offset) || 0;
     const genre = req.query.genre;
     const includeStats = req.query.includeStats === 'true';

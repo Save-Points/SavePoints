@@ -742,7 +742,7 @@ async function loadReviewsTab() {
                 rev.user_rating !== null && rev.user_rating !== undefined
                     ? rev.user_rating
                     : 'N/A';
-            ratingSpan.textContent = ` — Rating: ${+rating}/10`;
+            ratingSpan.textContent = ` — Rating: ${rating !== 'N/A' ? `${+rating}/10` : 'N/A'}`;
             topRow.appendChild(ratingSpan);
 
             const meta = document.createElement('div');

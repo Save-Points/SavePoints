@@ -140,12 +140,8 @@ async function loadSearchList() {
                                 const bioDiv = document.createElement('div');
                                 bioDiv.textContent = user.bio;
 
-                                // const countDiv = document.createElement('div');
-                                // countDiv.textContent = `Game List Entries: ${user.game_count || 0}`
-
                                 infoDiv.appendChild(userLink);
                                 infoDiv.appendChild(bioDiv);
-                                // infoDiv.appendChild(countDiv);
 
                                 infoTd.appendChild(infoDiv);
 
