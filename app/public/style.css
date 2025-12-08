@@ -461,8 +461,8 @@ th.sort-desc::after {
 }
 
 .user-profile-pic {
-    width: 49px;
-    height: 49px;
+    width: 48px;
+    height: 48px;
     object-fit: cover;
     margin-right: 5px;
 }
@@ -572,11 +572,17 @@ th.sort-desc::after {
     border-bottom: 1px solid black;
 }
 
-#gamesTable a img, #searchTable a img {
+#gamesTable a img {
     display: block;
     margin: 0 auto;
     width: 50px;
     height: auto;
+    padding: 8px;
+}
+
+#searchTable a img {
+    display: block;
+    margin: 0 auto;
     padding: 8px;
 }
 
@@ -1247,4 +1253,12 @@ a:hover {
     align-items: flex-start;
     gap: 10px;
     align-items: stretch;
+}
+
+.edit-textarea,
+.reply-textarea {
+    margin-top: 25px;
+    width: 100%;
+    min-height: 120px;
+    resize: vertical;
 }

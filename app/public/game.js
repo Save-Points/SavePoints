@@ -351,24 +351,51 @@ async function loadReviewsTab() {
             return;
         }
 
+        if (action === "cancel-reply") {
+            const reviewId = btn.dataset.reviewId;
+            const parentId = btn.dataset.parentReply;
+
+            let selector = reviewId
+                ? `.reply-input[data-review-id="${reviewId}"]`
+                : `.reply-input[data-parent-reply="${parentId}"]`;
+
+            const replyBox = reviewsListDiv.querySelector(selector);
+            if (!replyBox) return;
+
+            replyBox.classList.add("hidden");
+            replyBox.querySelector(".reply-textarea").value = "";
+            return;
+        }
+
         // editing a review/reply
         if (action === "review-edit" || action === "reply-edit" ||
-            action === "cancel-edit" || action === "cancel-reply-edit") {
+            action === "cancel-review-edit" || action === "cancel-reply-edit") {
 
-            const isReview = action.includes("review");
+            const isReview = action === "review-edit" || action === "cancel-review-edit";
             const id = isReview ? btn.dataset.reviewId : btn.dataset.replyId;
 
-            const selector = isReview ? `.edit-input[data-review-id="${id}"]` : `.reply-edit[data-reply-id="${id}"]`;
+            const card = isReview 
+                ? reviewsListDiv.querySelector(`.review-card[data-review-id="${id}"]`)
+                : reviewsListDiv.querySelector(`.review-card[data-reply-id="${id}"]`);
+            
+            const textP = card.querySelector('p');
+            const actionsDiv = card.querySelector('.review-actions');
+            
+            const editBox = isReview 
+                ? card.querySelector(`.edit-input[data-review-id="${id}"]`)
+                : card.querySelector(`.reply-edit[data-reply-id="${id}"]`);
 
-            const box = reviewsListDiv.querySelector(selector);
-            if (!box) return;
+            if (!editBox) return;
 
             if (action.startsWith("cancel")) {
-                box.classList.add("hidden");
+                editBox.classList.add("hidden");
+                textP.style.display = "";
+                actionsDiv.style.display = "";  // Show buttons again
             } else {
-                box.classList.remove("hidden");
+                editBox.classList.remove("hidden");
+                textP.style.display = "none";
+                actionsDiv.style.display = "none";  // Hide buttons
             }
-            loadReviews();
             return;
         }
 
@@ -660,7 +687,15 @@ function renderReply(reply, depth) {
                     ${edited ? `<small> • Edited at ${new Date(reply.updated_at).toLocaleString()}</small>` : ""}
                 </span>
             </div>
-            <p>${escapeHtml(reply.display_text)}</p>
+            <div>
+                <p>${escapeHtml(reply.display_text)}</p>
+                 <div class="reply-edit hidden" data-reply-id="${reply.id}">
+                    <textarea class="edit-textarea">${escapeHtml(reply.display_text)}</textarea>
+                    <br>
+                    <button class="action-btn" data-action="save-reply-edit" data-reply-id="${reply.id}">Save</button>
+                    <button class="action-btn" data-action="cancel-reply-edit" data-reply-id="${reply.id}">Cancel</button>
+                </div>
+            </div>
             <div class="review-actions">
                 <button class="vote-btn${userVote === 'up' ? ' vote-btn-active-up' : ''}" data-action="reply-upvote" data-reply-id="${reply.id}">▲ ${reply.upvotes}</button>
                 <button class="vote-btn${userVote === 'down' ? ' vote-btn-active-down' : ''}" data-action="reply-downvote" data-reply-id="${reply.id}">▼ ${reply.downvotes}</button>
@@ -675,13 +710,9 @@ function renderReply(reply, depth) {
                 <button class="action-btn" data-action="send-nested-reply" data-parent-reply="${reply.id}" data-review-id="${reply.review_id}">
                     Post Reply
                 </button>
+                <button class="action-btn" data-action="cancel-reply" data-parent-reply="${reply.id}">Cancel</button>
             </div>
-            <div class="reply-edit hidden" data-reply-id="${reply.id}">
-                <textarea class="reply-edit-textarea">${escapeHtml(reply.display_text)}</textarea>
-                <br>
-                <button class="action-btn" data-action="save-reply-edit" data-reply-id="${reply.id}">Save</button>
-                <button class="action-btn" data-action="cancel-reply-edit" data-reply-id="${reply.id}">Cancel</button>
-            </div>
+           
 
             ${reply.replies.map(child => renderReply(child, depth + 1)).join('')}
         </div>
@@ -719,7 +750,15 @@ function renderReview(review) {
                 <small>${new Date(review.created_at).toLocaleString()}</small>
                 ${edited ? `<small> • Edited at ${new Date(review.updated_at,).toLocaleString()}</small>` : ''}
             </div>
-            <p>${escapeHtml(review.display_text)}</p>
+            <div>
+                <p>${escapeHtml(review.display_text)}</p> 
+                <div class="edit-input hidden" data-review-id="${review.id}">
+                    <textarea class="edit-textarea">${escapeHtml(review.display_text,)}</textarea>
+                    <br />
+                    <button class="action-btn" data-action="save-edit" data-review-id="${review.id}">Save</button>
+                    <button class="action-btn" data-action="cancel-review-edit" data-review-id="${review.id}">Cancel</button>
+                </div>
+            </div>
             <div class="review-actions">
                 <button class="vote-btn${userVote === 'up' ? ' vote-btn-active-up' : ''}" data-action="review-upvote" data-review-id="${review.id}">▲ ${review.upvotes}</button>
                 <button class="vote-btn${userVote === 'down' ? ' vote-btn-active-down' : ''}" data-action="review-downvote" data-review-id="${review.id}">▼ ${review.downvotes}</button>
@@ -728,17 +767,12 @@ function renderReview(review) {
                     <button class="action-btn" data-action="review-delete" data-review-id="${review.id}">Delete</button>` : ''}
             </div>
 
-            <div class="edit-input hidden" data-review-id="${review.id}">
-                <textarea class="edit-textarea">${escapeHtml(review.display_text,)}</textarea>
-                <br />
-                <button class="action-btn" data-action="save-edit" data-review-id="${review.id}">Save</button>
-                <button class="action-btn" data-action="cancel-edit" data-review-id="${review.id}">Cancel</button>
-            </div>
 
             <div class="reply-input hidden" data-review-id="${review.id}">
                 <textarea class="reply-textarea" placeholder="Reply..."></textarea>
                 <br />
                 <button class="action-btn" data-action="send-reply" data-review-id="${review.id}">Post Reply</button>
+                <button class="action-btn" data-action="cancel-reply" data-review-id="${review.id}">Cancel</button>
             </div>
 
             ${review.replies.map((rep) => renderReply(rep, 1)).join('')}
