@@ -564,8 +564,6 @@ submitReviewBtn.addEventListener('click', async () => {
         })
     });
 
-    console.log(reviewRes, listRes);
-
     if (reviewRes.ok && listRes.ok) {
         document.getElementById('reviewText').value = '';
         window.location.reload();
