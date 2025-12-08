@@ -360,7 +360,7 @@ async function loadReviewsTab() {
             const body = await reviewRes.json().catch(() => ({}));
             alert(body.error || 'Failed to submit review.');
         }
-        window.location.reload();
+        loadReviews();
     });
 
     reviewsListDiv.addEventListener('click', async (e) => {
@@ -383,7 +383,7 @@ async function loadReviewsTab() {
                 body: JSON.stringify({ vote }),
             });
 
-            window.location.reload();
+            loadReviews();
             return;
         }
 
