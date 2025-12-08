@@ -4,99 +4,118 @@
         <meta charset="utf-8" />
         <title>SavePoints - Game Page</title>
         <link rel="stylesheet" href="style.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     </head>
     <body>
         <div id="header"></div>
-        <h3 id="name" class="content-header"></h3>
+        <div id="headerContainer">
+            <h3 id="gameHeader" class="content-header"></h3>
+        </div>
         <div class="content-wrapper">
             <div class="container-small">
                 <div class="cover-add">
                     <img id="cover" />
-                    <a id="addToList" class="add-button">Add to List</a>
-                </div>
-                <div id="userGameAdd">
-                    <table>
-                        <tbody>
-                            <tr>
-                                <td>Status:</td>
-                                <td>
-                                    <select id="status" name="status">
-                                        <option value ="planned">Planned</option>
-                                        <option value ="completed">Completed</option>
-                                        <option value ="playing">Playing</option>
-                                        <option value ="on_hold">On Hold</option>
-                                        <option value ="wishlisted">Wishlisted</option>
-                                        <option value ="dropped">Dropped</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Hours Played:</td>
-                                <td>
-                                    <input type="text" inputmode="decimal" class="number-input" id="hoursPlayed" />
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Rating:</td>
-                                <td>
-                                    <input type="text" inputmode="decimal" class="number-input" id="userRating" />
-                                    / 10
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><button id="submit" class="auth-button">Add</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div class="hidden" id="message"></div>
-                </div>
-            </div>
-            <div class="container-large">
-                <p id="gameInfo">
-                    <div class="game-info-container">
-                        <div class="details-grid">
-                            <p class="label"><strong>Developer(s):</strong></p>
-                            <p id="developers"></p>
-
-                            <p class="label"><strong>Publisher(s):</strong></p>
-                            <p id="publishers"></p>
-
-                            <p class="label"><strong>Rating:</strong></p>
-                            <p id="gameRating"></p>
-
-                            <p class="label"><strong>Release Date:</strong></p>
-                            <p id="releaseDate"></p>
-
-                            <p class="label"><strong>Platforms:</strong></p>
-                            <p id="platforms"></p>
-
-                            <p class="label"><strong>Genres:</strong></p>
-                            <p id="genres"></p>
-
-                            <p class="label"><strong>Summary:</strong></p>
-                            <p id="summary"></p>
-                        </div>
-                        
+                    <a id="addToList" class="add-button"></a>
+                    <div id="userGameAdd">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td>
+                                        <select id="entryStatus" name="status">
+                                            <option value ="planned">Planned</option>
+                                            <option value ="completed">Completed</option>
+                                            <option value ="playing">Playing</option>
+                                            <option value ="on_hold">On Hold</option>
+                                            <option value ="wishlisted">Wishlisted</option>
+                                            <option value ="dropped">Dropped</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Hours Played:</strong></td>
+                                    <td>
+                                        <input type="text" inputmode="decimal" class="number-input" id="entryHoursPlayed" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Rating:</strong></td>
+                                    <td>
+                                        <input type="text" inputmode="decimal" class="number-input" id="entryRating" />
+                                        / 10
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><button id="submit" class="auth-button">Add</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="hidden" id="message"></div>
                     </div>
-                </p>
-            </div>
-                <h2>Write A Review</h2>
-                <div id="userReviewSection" style="display: none">
-                    <br /><br />
-                    <textarea
-                        id="reviewText"
-                        placeholder="Write your review here..."
-                        style="width: 100%; height: 200px; resize: vertical"
-                    ></textarea>
-                    <br />
-                    <button id="submitReview">Submit Review</button>
+                    <a id="addReview" class="add-button">Write Review</a>
                 </div>
-
-                <h2>Community Reviews</h2>
-                <div id="reviewsList"></div>
             </div>
+            <div class="container-large" style="padding-left: 0; border-bottom: 1p solid white;">
+                <ul class="page-ul">
+                    <li><a id="overview" class="profile-tab">Overview</a></li>
+                    <li><a id="reviews" class="profile-tab">Reviews</a></li>
+                    <li><a id="media" class="profile-tab">Media</a></li>
+                </ul>
+                <div id="contentDiv" style="padding: 10px;"></div>
+            </div>
+        </div>
+        <div id="reviewModal" class="modal">
+            <div class="modal-content">
+                <span id="closeModal" style="float:right; cursor:pointer;">&times;</span>
+                <h3>Write Review</h3>
+                <table style="width: 100%;">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <strong>Status:</strong>
+                                <select id="reviewStatus" name="reviewStatus">
+                                    <option value ="planned">Planned</option>
+                                    <option value ="completed">Completed</option>
+                                    <option value ="playing">Playing</option>
+                                    <option value ="on_hold">On Hold</option>
+                                    <option value ="wishlisted">Wishlisted</option>
+                                    <option value ="dropped">Dropped</option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Hours Played:</strong>
+                                <input type="text" inputmode="decimal" class="number-input" id="reviewHoursPlayed" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Rating:</strong>
+                                <input type="text" inputmode="decimal" class="number-input" id="reviewRating" /> / 10
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <strong>Review:</strong>
+                                <textarea
+                                    id="reviewText"
+                                    placeholder="Write your review here..."
+                                    style="width: 100%; height: 200px; resize: vertical"
+                                ></textarea>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <button id="submitReview" class="auth-button" style="float: right">Submit</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-        <script src="game.js"></script>
+        <script src="game.js" type="module"></script>
         <script type="module"> 
             import { loadHeader } from './header.js';
             document.addEventListener("DOMContentLoaded", () => {

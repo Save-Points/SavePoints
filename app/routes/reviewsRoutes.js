@@ -267,7 +267,7 @@ router.post('/:reviewId/reply', authorize, async (req, res) => {
                 msg = `${senderName} replied to your review`;
             }
 
-            const link = `/game?id=${gameId}`;
+            const link = `/game?id=${gameId}&tab=reviews`;
 
             await pool.query(
                 `INSERT INTO notifications (user_id, type, message, link) VALUES ($1, 'reply', $2, $3)`,
@@ -328,7 +328,7 @@ router.post('/:reviewId/vote', authorize, async (req, res) => {
                         );
 
                         if (exists.rows.length === 0) {
-                            const link = `/game?id=${gameId}#review-${reviewId}`;
+                            const link = `/game?id=${gameId}&tab=reviews`;
                             await sendNotification(ownerId, 'upvote', `${senderName} upvoted your review`, link);
                         }
                     }

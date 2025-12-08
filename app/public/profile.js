@@ -15,9 +15,8 @@ let userInfo = {
     onHoldGames: 0,
     upvotes: 0,
     downvotes: 0,
+    reviews: [],
 }
-
-let currentProfileUserId = null;
 
 const contentDiv = document.getElementById('contentDiv');
 const overviewTab = document.getElementById('overview');
@@ -27,6 +26,9 @@ const viewAllFriends = document.getElementById('viewFriends');
 
 const pathParts = window.location.pathname.split('/'); 
 const usernameParam = pathParts[2];
+
+const params = new URLSearchParams(window.location.search);
+const activeTab = params.get('tab') || 'overview';
 
 async function checkFriendStatus(targetUserId) {
     const actionArea = document.getElementById('friendActionArea');
@@ -47,7 +49,7 @@ async function checkFriendStatus(targetUserId) {
         }
 
         const btn = document.createElement('button');
-        btn.className = 'friend-action-btn'; 
+        btn.className = 'action-btn'; 
 
         if (data.status === 'none') {
             btn.textContent = 'Add Friend';
@@ -64,12 +66,12 @@ async function checkFriendStatus(targetUserId) {
             wrapper.style.gap = '10px';
             
             const acceptBtn = document.createElement('button');
-            acceptBtn.className = 'friend-action-btn btn-green';
+            acceptBtn.className = 'action-btn btn-green';
             acceptBtn.textContent = 'Accept';
             acceptBtn.onclick = () => acceptFriendRequest(targetUserId);
 
             const declineBtn = document.createElement('button');
-            declineBtn.className = 'friend-action-btn btn-red';
+            declineBtn.className = 'action-btn btn-red';
             declineBtn.textContent = 'Decline';
             declineBtn.onclick = () => removeConnection(targetUserId);
 
@@ -87,7 +89,7 @@ async function checkFriendStatus(targetUserId) {
             badge.textContent = 'Friends';
 
             const unfriendBtn = document.createElement('button');
-            unfriendBtn.className = 'friend-action-btn btn-red';
+            unfriendBtn.className = 'action-btn btn-red';
             unfriendBtn.textContent = 'Unfriend';
             unfriendBtn.style.marginTop = '0';
             unfriendBtn.onclick = () => removeConnection(targetUserId);
@@ -179,6 +181,18 @@ async function removeFriendRequest(targetId) {
     }
 }
 
+async function loadReviews(userId) {
+    try {
+        const response = await fetch(`/users/${userId}/reviews`);
+        const reviews = await response.json();
+
+        userInfo.reviews = reviews;
+    } catch (error) {
+        console.error(error);
+        userInfo.reviews = [];
+    }
+}
+
 async function loadFriends(userId) {
     const container = document.getElementById('friendsContainer');
     try {
@@ -208,11 +222,15 @@ async function loadFriends(userId) {
             img.className = 'user-profile-pic';
             img.alt = friend.username;
             img.style = 'border: 1px solid black;'
+            img.loading = 'lazy';
 
             imgLink.appendChild(img);
             friendsContainer.appendChild(imgLink);
         });
         container.appendChild(friendsContainer);
+
+        const friendsHeader = document.getElementById('friendsHeader');
+        friendsHeader.textContent = `Friends (${userInfo.friends.length})`
 
     } catch (err) { 
         console.error("Error loading friends:", err); 
@@ -249,10 +267,12 @@ async function loadProfile() {
         
 
         if (user.id) {
-            loadFriends(user.id);
+            await loadFriends(user.id);
             if (usernameParam) {
                 checkFriendStatus(user.id);
             }
+
+            await loadReviews(user.id);
         }
 
     } catch (error) {
@@ -276,10 +296,9 @@ async function loadProfileGames() {
         const body = await response.json();
         const gameIds = body.map((game) => game.game_id);
         const idStr = gameIds.join(',');
-        const apiRes = await fetch(`/api/games?ids=${idStr}`);
+        const apiRes = await fetch(`/api/games?ids=${idStr}&includeStats=false&limit=500`);
         const data = await apiRes.json();
         const games = data.games;
-
         const combined = body.map((game) => {
             const igdbGame = games.find((g) => g.id == game.game_id);
             return {
@@ -300,7 +319,7 @@ async function loadProfileGames() {
             }
 
             if (game.rating !== null) {
-                totalRating += parseInt(game.rating);
+                totalRating += parseFloat(game.rating);
                 gamesWithRatings++;
             }
 
@@ -332,8 +351,8 @@ async function loadProfileGames() {
                     break;
             }
         }
-        userInfo.averageRating = gamesWithRatings ? totalRating / gamesWithRatings : 0;
-        userInfo.averageHoursPlayed = gamesWithHours ? userInfo.hoursPlayed / gamesWithHours : 0;
+        userInfo.averageRating = gamesWithRatings ? (totalRating * 1.0) / gamesWithRatings : 0;
+        userInfo.averageHoursPlayed = gamesWithHours ? (userInfo.hoursPlayed * 1.0) / gamesWithHours : 0;
 
     } catch (error) {
        
@@ -355,28 +374,45 @@ function formatStatus(status) {
     return status.split('-').map(word => word[0].toUpperCase() + word.slice(1)).join(' ');
 }
 
+function createCard(label, value, iconClass) {
+    const card = document.createElement('div');
+    card.className = 'game-info-card';
+    card.style.marginBottom = '10px';
+
+    const statLabel = document.createElement('div');
+    statLabel.style.fontWeight = 'bold';
+    statLabel.style.marginBottom = '8px';
+    if (iconClass) {
+        const icon = document.createElement('i');
+        icon.className = `fas ${iconClass}`;
+        icon.style.marginRight = '6px';
+        statLabel.appendChild(icon);
+    }
+    statLabel.appendChild(document.createTextNode(label));
+    card.appendChild(statLabel);
+
+    if (value instanceof HTMLElement) {
+        card.appendChild(value);
+    } else {
+        const statValue = document.createElement('div');
+        statValue.textContent = value ?? 'N/A';
+        card.appendChild(statValue);
+    }
+
+    return card;
+}
+
 function loadStatistics() {
     const header = document.createElement('h2');
     header.classList = 'list-header';
     header.textContent = 'Statistics';
     header.style.marginTop = '0';
-    const statsWrapper = document.createElement('div');
-    statsWrapper.style.display = 'flex';
-    statsWrapper.style.justifyContent = 'space-between';
-    statsWrapper.style.alignItems = 'center';
-    statsWrapper.style.marginBottom = '8px';
-    statsWrapper.style.maxWidth = '500px';
+    const profileContainer = document.createElement('div');
+    profileContainer.classList = 'profile-info-container';
+    profileContainer.style = 'gap: 75px;'
 
-    const hoursDiv = document.createElement('div');
-    const daysPlayed = +(userInfo.hoursPlayed / 24).toFixed(2);
-    hoursDiv.textContent = `Hours Played: ${userInfo.hoursPlayed} (${daysPlayed} days)`;
-
-    const avgScoreDiv = document.createElement('div');
-    const avgScore = +(userInfo.averageRating || 0).toFixed(2);
-    avgScoreDiv.textContent = `Average Score: ${avgScore}`;
-
-    statsWrapper.appendChild(hoursDiv);
-    statsWrapper.appendChild(avgScoreDiv);
+    const progressContainer = document.createElement('div');
+    progressContainer.style = 'display: flex; flex-direction: column; flex: 0 0 50%';
 
     const wrapperDiv = document.createElement('div');
     wrapperDiv.className = 'progress-bar-wrapper';
@@ -425,56 +461,99 @@ function loadStatistics() {
         }
     }
 
+    const statsContainer = document.createElement('div');
+    statsContainer.classList = 'profile-info-container';
+
+    const entryContainer = document.createElement('div');
+    entryContainer.classList = 'profile-info-container';
+
+    entryContainer.appendChild(createCard('Total List Entries', userInfo.games.length, 'fa-list'));
+    statsContainer.appendChild(createCard('Average Rating', userInfo.averageRating !== null ? `${+userInfo.averageRating.toFixed(2)}/10` : 'N/A', 'fa-star-half-alt'));
+    statsContainer.appendChild(createCard('Average Hours Played', userInfo.averageHoursPlayed !== null ? +userInfo.averageHoursPlayed.toFixed(2) : 'N/A', 'fa-clock'));
+    statsContainer.appendChild(createCard('Total Hours Played', userInfo.hoursPlayed !== null ? +userInfo.hoursPlayed.toFixed(2) : 'N/A', 'fa-hourglass'));
     keyDiv.appendChild(leftColumn);
     keyDiv.append(middleColumn);
     keyDiv.appendChild(rightColumn);
+
+    const infoContainer = document.createElement('div');
+    infoContainer.style.width = '100%';
+
+
     contentDiv.appendChild(header);
-    contentDiv.appendChild(statsWrapper);
-    contentDiv.appendChild(wrapperDiv);
-    contentDiv.appendChild(keyDiv);
+    const progressHeader = document.createElement('h3');
+    progressHeader.classList = 'content-header';
+    progressHeader.style.width = 'auto';
+    progressHeader.textContent = 'Game Status Distribution';
+    progressHeader.style.margin = '0 0 8px 0';
+
+    progressContainer.appendChild(progressHeader);
+    progressContainer.appendChild(wrapperDiv);
+    progressContainer.appendChild(keyDiv);
+    
+    const infoHeader = document.createElement('h3');
+    infoHeader.classList = 'content-header';
+    infoHeader.style.width = 'auto';
+    infoHeader.textContent = 'Game List Overview';
+    infoHeader.style.margin = '0 0 8px 0';
+
+    infoContainer.appendChild(infoHeader);
+    infoContainer.appendChild(entryContainer);
+    infoContainer.appendChild(statsContainer);
+    profileContainer.appendChild(infoContainer);
+    profileContainer.appendChild(progressContainer);
+    contentDiv.appendChild(profileContainer);
 }
 
 async function createGameList(type) {
     const carouselWrapper = document.createElement('div');
     carouselWrapper.classList = 'carousel-wrapper';
 
-    // const gameLeft = document.createElement('button');
-    // gameLeft.classList = 'scroll-btn-left';
-    // gameLeft.textContent = '◀';
-
-    // const gameRight = document.createElement('button');
-    // gameRight.classList = 'scroll-btn-right';
-    // gameRight.textContent = '▶';
-
     const carousel = document.createElement('div');
     carousel.classList = 'carousel';
 
-    // TODO: maybe scroll?
-    // carouselWrapper.appendChild(gameLeft);
     carouselWrapper.appendChild(carousel);
-    // carouselWrapper.appendChild(gameRight);
 
     let gamesToShow;
     switch (type) {
         case 'all':
-            gamesToShow = userInfo.games
+            gamesToShow = userInfo.games.filter(game => game.rating !== null)
                 .sort((a, b) => (b.rating || 0) - (a.rating || 0))
                 .slice(0, 6)
                 .map(game => ({
                     id: game.game_id,
                     name: game.igdb.name,
-                    coverUrl: game.igdb.coverUrl,
+                    cover: {
+                        url: game.igdb.cover.url,
+                    },
                     rating: game.rating,
                 }));
             break;
         case 'favorites':
+            const gameLeft = document.createElement('button');
+            gameLeft.classList = 'scroll-btn-left';
+            gameLeft.textContent = '<';
+            gameLeft.addEventListener('click', () => {
+                carousel.scrollBy({ left: -carousel.offsetWidth, behavior: 'smooth' });
+            });
+
+            const gameRight = document.createElement('button');
+            gameRight.classList = 'scroll-btn-right';
+            gameRight.textContent = '>';
+            gameRight.addEventListener('click', () => {
+                carousel.scrollBy({ left: carousel.offsetWidth, behavior: 'smooth' });
+            });
+
+            carouselWrapper.appendChild(gameLeft);
+            carouselWrapper.appendChild(gameRight);
+        
             gamesToShow = userInfo.favoriteGames
                 .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-                .slice(0, 6)
                 .map(game => ({
                     id: game.game_id,
                     name: game.igdb.name,
-                    coverUrl: game.igdb.coverUrl,
+                    cover: {
+                        url: game.igdb.cover.url,
+                    } 
                 }));
             break;
         default:
@@ -518,7 +597,7 @@ async function loadGameLists() {
     const favTitle = document.createElement('h2');
     favHeader.classList = 'list-header';
 
-    favTitle.textContent = 'Favorited Games';
+    favTitle.textContent = `Favorited Games (${userInfo.favoriteGames.length})`;
     favTitle.style.marginTop = '3';
 
     favHeader.appendChild(favTitle);
@@ -544,7 +623,6 @@ async function loadFriendsTab() {
     friendsContainer.classList = 'friends-container';
 
     if (!userInfo.friends || userInfo.friends.length === 0) {
-        console.log("here")
         const p = document.createElement('p');
         p.className = 'empty-msg';
         p.textContent = 'No friends added yet.';
@@ -564,7 +642,8 @@ async function loadFriendsTab() {
         img.src = friend.profile_pic_url || '/images/default_profile_pic.jpg';
         img.className = 'user-profile-pic';
         img.alt = friend.username;
-        img.style = 'margin: 5px;'
+        img.style = 'margin: 5px;';
+        img.loading = 'lazy';
 
         const infoContainer = document.createElement('div');
         infoContainer.classList = 'friend-info';
@@ -606,61 +685,13 @@ async function loadReviewsTab() {
     contentDiv.textContent = '';
 
     try {
-        let userId = currentProfileUserId;
-
-        if (!userId) {
-            const endpoint = usernameParam ? `/users/view/${usernameParam}` : '/users/view';
-            const userRes = await fetch(endpoint);
-
-            if (!userRes.ok) {
-                const p = document.createElement('p');
-                p.className = 'empty-msg';
-                p.textContent = 'Unable to load reviews.';
-                contentDiv.appendChild(p);
-                return;
-            }
-
-            const user = await userRes.json();
-            userId = user.id;
-            currentProfileUserId = userId;
-        }
-
-        const res = await fetch(`/users/${userId}/reviews`);
-        if (!res.ok) {
-            const p = document.createElement('p');
-            p.className = 'empty-msg';
-            p.textContent = 'Failed to load reviews.';
-            contentDiv.appendChild(p);
-            return;
-        }
-
-        const reviews = await res.json();
-
-        if (!reviews || reviews.length === 0) {
+        if (!userInfo.reviews || userInfo.reviews.length === 0) {
             const p = document.createElement('p');
             p.className = 'empty-msg';
             p.textContent = 'No reviews yet.';
             contentDiv.appendChild(p);
             return;
         }
-        const gameIds = [...new Set(reviews.map(r => r.game_id))];
-        const idStr = gameIds.join(',');
-
-        const gamesRes = await fetch(`/api/games?ids=${idStr}`);
-        if (!gamesRes.ok) {
-            const p = document.createElement('p');
-            p.className = 'empty-msg';
-            p.textContent = 'Failed to load game info for reviews.';
-            contentDiv.appendChild(p);
-            return;
-        }
-
-        const gamesData = await gamesRes.json();
-        const games = gamesData.games || [];
-
-        const gameMap = new Map();
-        games.forEach(g => gameMap.set(g.id, g));
-
         const header = document.createElement('h2');
         header.classList = 'list-header';
         header.textContent = 'Reviews';
@@ -671,22 +702,22 @@ async function loadReviewsTab() {
         list.className = 'reviews-list';
         contentDiv.appendChild(list);
 
-        reviews.forEach((rev) => {
-            const g = gameMap.get(rev.game_id);
+        userInfo.reviews.forEach((rev) => {
+            const g = userInfo.games.find(game => game.game_id === rev.game_id);
 
             const card = document.createElement('div');
             card.className = 'review-card clickable-review-card';
             card.style.cursor = 'pointer';
 
             card.addEventListener('click', () => {
-                window.location.href = `/game.html?id=${rev.game_id}`;
+                window.location.href = `/game?id=${rev.game_id}&tab=reviews`;
             });
 
             const topRow = document.createElement('div');
             topRow.className = 'review-header-line';
 
             const title = document.createElement('strong');
-            title.textContent = g ? g.name : `Game ID ${rev.game_id}`;
+            title.textContent = g ? g.igdb.name : `Game ID ${rev.game_id}`;
             topRow.appendChild(title);
 
             const ratingSpan = document.createElement('span');
@@ -724,7 +755,24 @@ async function loadReviewsTab() {
 document.addEventListener('DOMContentLoaded', async () => {
     await loadProfile();
     await loadProfileGames();
-    await loadOverviewTab();
+    switch (activeTab) {
+        case 'overview':
+            await loadOverviewTab();
+            setActive(overviewTab);
+            break;
+        case 'reviews':
+            await loadReviewsTab();
+            setActive(reviewsTab);
+            break;
+        case 'friends':
+            await loadFriendsTab();
+            setActive(friendsTab);
+            break;
+        default: 
+            await loadOverviewTab();
+            setActive(overviewTab);
+            break;
+    }
 });
 
 function setActive(elem) {
@@ -734,23 +782,34 @@ function setActive(elem) {
     elem.classList.add('active');
 }
 
+function setTabUrl(tab) {
+    const url = new URL(window.location);
+    url.searchParams.set('tab', tab);
+    history.pushState(null, '', url);
+}
+
 overviewTab.addEventListener('click', async () => {
     await loadOverviewTab();
     setActive(overviewTab);
+    setTabUrl('overview');
 });
 
 reviewsTab.addEventListener('click', async () => {
     await loadReviewsTab();
     setActive(reviewsTab);
+    setTabUrl('reviews');
 });
 
 friendsTab.addEventListener('click', async () => {
     loadFriendsTab();
     setActive(friendsTab);
+    setTabUrl('friends');
 });
 
 viewAllFriends.addEventListener('click', async () => {
     loadFriendsTab();
     setActive(friendsTab);
     viewAllFriends.classList.add('visited');
+    setTabUrl('friends');
 });
+

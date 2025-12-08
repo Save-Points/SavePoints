@@ -94,7 +94,7 @@ function renderGames(games) {
     }
     for (let i = 0; i < games.length; i++) {
         const game = games[i];
-        const gameUrl = `/game?id=${game.game_id}`
+        const gameUrl = `/game?id=${game.game_id}&tab=overview`;
 
         const row = document.createElement('tr');
 
@@ -112,8 +112,9 @@ function renderGames(games) {
         imgLink.href = gameUrl;
 
         const img = document.createElement('img');
-        img.src = game.igdb.coverUrl;
+        img.src = game.igdb.cover.url;
         img.alt = game.igdb.name;
+        img.loading = 'lazy';
 
         imgLink.appendChild(img);
         imgTd.appendChild(imgLink);
@@ -163,7 +164,7 @@ async function loadGameList() {
                 response.json().then(async (body) => {
                     const gameIds = body.map((game) => game.game_id);
                     const idStr = gameIds.join(',');
-                    const apiRes = await fetch(`/api/games?ids=${idStr}`);
+                    const apiRes = await fetch(`/api/games?ids=${idStr}&includeStats=false&limit=500`);
                     const data = await apiRes.json();
                     const games = data.games;
 

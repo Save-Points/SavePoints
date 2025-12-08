@@ -1,30 +1,9 @@
+
+import { getFavoriteIds, toggleFavorite, handleStarFavorited } from './favorite.js';
+
 export async function generateGameCards(games) {
     let cards = [];
-    let favoriteIds = [];
-
-    const storedFavorites = localStorage.getItem('favoriteIds');
-    if (storedFavorites) {
-        try {
-            favoriteIds = JSON.parse(storedFavorites);
-        } catch (error) {
-            console.log('GET STORED FAVORITES FAILED', error);
-            favoriteIds = [];
-        }
-    } else {
-        try {
-            const response = await fetch(`/usergames?favorites=true`);
-            if (response.ok) {
-                const favoritesRes = await response.json();
-                favoriteIds = favoritesRes.map(game => game.game_id);
-            } else {
-                favoriteIds = [];
-            }
-            localStorage.setItem('favoriteIds', JSON.stringify(favoriteIds));
-        } catch (error) {
-            console.log('FETCH FAVORITES FAILED', error);
-            favoriteIds = [];
-        }
-    }
+    const favoriteIds = await getFavoriteIds();
 
     const gamesWithFavorites = games.map(game => ({
         ...game,
@@ -35,9 +14,10 @@ export async function generateGameCards(games) {
         const card = document.createElement('div');
         card.className = 'game-card';
         const img = document.createElement('img');
-        img.src = game.coverUrl;
+        img.src = game.cover.url;
         img.alt = game.name;
         img.className = 'game-cover';
+        img.loading = 'lazy';
         const title = document.createElement('p');
         title.textContent = game.name;
         title.className = 'game-title';
@@ -48,19 +28,18 @@ export async function generateGameCards(games) {
             rating.style.display = 'block';
             title.appendChild(rating);
         }
-
         const star = document.createElement('span');
         star.className = 'star';
 
         handleStarFavorited(star, game);
 
-        star.addEventListener('click', (event) => {
+        star.addEventListener('click', async (event) => {
             event.stopPropagation();
-            toggleFavorite(game, star);
+            await toggleFavorite(game, star);
         });
 
         card.addEventListener('click', () => {
-            window.location.href = `/game?id=${game.id}`;
+            window.location.href = `/game?id=${game.id}&tab=overview`;
         });
         card.appendChild(img);
         card.appendChild(title);
@@ -71,40 +50,3 @@ export async function generateGameCards(games) {
     return cards;
 }
 
-async function toggleFavorite(game, starElem) {
-    try {
-        const response = await fetch('/usergames/togglefavorite', {
-            method: 'POST', 
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                gameId: game.id
-            })
-        });
-
-        if (response.status === 401) {
-            window.location.href = '/login.html';
-            return;
-        }
-
-        game.favorited = !game.favorited;
-
-        let storedFavorites = JSON.parse(localStorage.getItem('favoriteIds') || '[]');
-        if (game.favorited) {
-            storedFavorites.push(game.id);
-        } else {
-            storedFavorites = storedFavorites.filter(id => id !== game.id);
-        }
-        localStorage.setItem('favoriteIds', JSON.stringify(storedFavorites));
-        
-    } catch (error) {
-        // TODO: do something on this error?
-        console.log('FAILED TO GET FAVORITES', error);
-    }
-    handleStarFavorited(starElem, game);
-}
-
-function handleStarFavorited(starElem, game) {
-    starElem.innerHTML = game.favorited ? '★' : '☆';
-}

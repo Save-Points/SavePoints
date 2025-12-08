@@ -1,0 +1,74 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>SavePoints - Games</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <div id="header"></div>
+        <h3 id="gamesHeader" class="content-header"></h3>
+        <div class="content-wrapper" style="padding-top: 10px;">
+            <select id="genreFilter">
+                <option value="all">All Genres</option>
+            </select>
+            <div style="display: flex; justify-content: flex-start; align-items: flex-start;">
+                <div id="paginationTop" style="margin-left: auto; margin-bottom: 3px;"></div>
+            </div>
+            <table id="gamesTable" class="centered-table" style="margin-top: 10px;">
+                <colgroup>
+                    <col style="width: 5%">
+                    <col style="width: 10%">
+                    <col style="width: 35%;">
+                    <col style="width: 10%">
+                    <col style="width: 10%">
+                    <col style="width: 15%">
+                    <col style="width: 10%">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>
+                            Rank
+                        </th>
+                        <th>
+                            Image
+                        </th>
+                        <th style="text-align: left">
+                            Game
+                        </th>
+                        <th>
+                            Users Added
+                        </th>
+                        <th>
+                            Average Rating
+                        </th>
+                        <th>
+                            Average Hours Played
+                        </th>
+                        <th>
+                            Your Status
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="gamesBody"></tbody>
+            </table>
+            <div style="display: flex; width: 100%;">
+                <div id="paginationBottom" style="margin-left: auto; margin-top: 3px;"></div>
+            </div>
+        </div>
+
+        <script src="gamesPage.js"></script>
+        <script type="module"> 
+            import { loadHeader } from './header.js';
+            document.addEventListener("DOMContentLoaded", async () => {
+                await loadHeader();
+
+                const homeTab = document.getElementById('homeTab');
+                const gamesTab = document.getElementById('gamesTab');
+
+                homeTab.classList.remove('active');
+                gamesTab.classList.add('active');
+            });
+        </script> 
+    </body>
+</html>

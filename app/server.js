@@ -56,6 +56,15 @@ app.get('/my-notifications', (_req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'notifications.html'));
 });
 
+app.get('/games', (_req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'gamesPage.html'));
+});
+
+app.get('/settings', (_req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'settings.html'));
+});
+
+
 app.listen(port, hostname, () => {
     console.log(`Listening at http://${hostname}:${port}`);
     (async () => {
