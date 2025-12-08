@@ -28,7 +28,6 @@ export async function getFavoriteIds() {
 }
 
 export async function toggleFavorite(game, starElem) {
-    console.log("TOGGLING FAVORITE FOR GAME", game);
     try {
         const response = await fetch('/usergames/togglefavorite', {
             method: 'POST', 
