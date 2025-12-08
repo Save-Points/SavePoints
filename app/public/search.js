@@ -51,6 +51,8 @@ async function loadSearchList() {
                             img.src = game.cover.url.replace('t_thumb', 't_cover_big');
                             img.alt = game.name;
                             img.loading = 'lazy';
+                            img.style.width = '50px';
+                            img.style.height = 'auto';
 
                             imgLink.appendChild(img);
                             imgTd.appendChild(imgLink);
