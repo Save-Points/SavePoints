@@ -327,42 +327,6 @@ async function loadReviewsTab() {
         });
     }
 
-    submitReviewBtn.addEventListener('click', async () => {
-        const review_text = document.getElementById('reviewText').value;
-        const reviewStatus = document.getElementById('reviewStatus').value || null;
-        const reviewHoursPlayed = document.getElementById('reviewHoursPlayed').value;
-        const reviewRating = document.getElementById('reviewRating').value;
-        reviewModal.style.display = 'none';
-
-        const reviewRes = await fetch(`/reviews/${gameId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ review_text }),
-        });
-
-        const listRes = await fetch('/usergames/add', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                gameId: gameId,
-                rating: reviewRating,
-                hoursPlayed: reviewHoursPlayed,
-                status: reviewStatus,
-            })
-        });
-
-        if (reviewRes.ok && listRes.ok) {
-            document.getElementById('reviewText').value = '';
-            loadReviews();
-        } else {
-            const body = await reviewRes.json().catch(() => ({}));
-            alert(body.error || 'Failed to submit review.');
-        }
-        window.location.reload();
-    });
-
     reviewsListDiv.addEventListener('click', async (e) => {
         const btn = e.target.closest('button');
         if (!btn) return;
@@ -573,6 +537,44 @@ async function loadMediaTab() {
         }
     }
 }
+
+submitReviewBtn.addEventListener('click', async () => {
+    const review_text = document.getElementById('reviewText').value;
+    const reviewStatus = document.getElementById('reviewStatus').value || null;
+    const reviewHoursPlayed = document.getElementById('reviewHoursPlayed').value;
+    const reviewRating = document.getElementById('reviewRating').value;
+    reviewModal.style.display = 'none';
+
+    const reviewRes = await fetch(`/reviews/${gameId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ review_text }),
+    });
+
+    const listRes = await fetch('/usergames/add', {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            gameId: gameId,
+            rating: reviewRating,
+            hoursPlayed: reviewHoursPlayed,
+            status: reviewStatus,
+        })
+    });
+
+    console.log(reviewRes, listRes);
+
+    if (reviewRes.ok && listRes.ok) {
+        document.getElementById('reviewText').value = '';
+        window.location.reload();
+    } else {
+        const body = await reviewRes.json().catch(() => ({}));
+        alert(body.error || 'Failed to submit review.');
+    }
+    window.location.reload();
+});
 
 
 async function checkLogin() {
