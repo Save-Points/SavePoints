@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { injectToken, getTwitchToken } from '../middleware/token.js';
-import { pool } from '../utils/dbUtils.js';
+import { attachStatistics, pool } from '../utils/dbUtils.js';
 import dotenv from 'dotenv';
 import axios from 'axios';
 
@@ -58,6 +58,7 @@ async function ensureGenreCache() {
 }
 
 router.post('/search', injectToken, async (req, res) => {
+    res.set('Cache-Control', 'public, max-age=3600');
     let searchTerm = req.body.searchTerm; 
     let offset = parseInt(req.body.offset) || 0;
 
@@ -65,6 +66,12 @@ router.post('/search', injectToken, async (req, res) => {
         return res.status(400).json({ error: 'Search term is required' });
     }
     const accessToken = req.accessToken;
+
+    const filters = `where game_type = (0,4,8,9,10)
+        & cover != null & cover.url != null
+        & version_parent = null
+        & total_rating_count > 0
+        & first_release_date != null;`;
 
     try {
         const apiResponse = await axios.post(
@@ -80,11 +87,7 @@ router.post('/search', injectToken, async (req, res) => {
                 involved_companies.developer, 
                 involved_companies.publisher;
             search "${searchTerm}";
-            where game_type = (0,4,8,9,10)
-            & cover != null & cover.url != null
-            & version_parent = null
-            & total_rating_count > 0
-            & first_release_date != null;
+            ${filters}
             limit 20;
             offset ${offset};`,
             {
@@ -99,11 +102,7 @@ router.post('/search', injectToken, async (req, res) => {
         const countResponse = await axios.post(
             'https://api.igdb.com/v4/games/count',
             `search "${searchTerm}";
-            where game_type = (0,4,8,9,10)
-            & cover != null & cover.url != null
-            & version_parent = null
-            & total_rating_count > 0
-            & first_release_date != null;`,
+            ${filters}`,
             {
                 headers: {
                     'Client-ID': CLIENT_ID,
@@ -113,8 +112,13 @@ router.post('/search', injectToken, async (req, res) => {
             },
         );
 
-        res.json({
-            games: apiResponse.data,
+        const games = apiResponse.data.map(game => {
+            game.cover.url = game.cover.url.replace('t_thumb', 't_cover_big');
+            return game;
+        });
+
+        res.status(200).json({
+            games,
             count: countResponse.data.count,
         });
     } catch (error) {
@@ -131,7 +135,22 @@ router.get('/game/:id', injectToken, async (req, res) => {
     try {
         let apiResponse = await axios.post(
             'https://api.igdb.com/v4/games',
-            `fields name, summary, cover.url, aggregated_rating, first_release_date, platforms.name, genres.name, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+            `fields 
+                name, 
+                summary, 
+                cover.url, 
+                aggregated_rating, 
+                first_release_date,
+                screenshots.url,
+                videos.video_id,
+                artworks.url, 
+                platforms.name, 
+                genres.name, 
+                themes.name,
+                game_modes.name,
+                involved_companies.company.name, 
+                involved_companies.developer, 
+                involved_companies.publisher;
             where id = ${gameId};`,
             {
                 headers: {
@@ -141,60 +160,19 @@ router.get('/game/:id', injectToken, async (req, res) => {
                 },
             },
         );
-        res.json(apiResponse.data[0]);
+        const game = apiResponse.data[0];
+        game.cover.url = game.cover.url.replace('t_thumb', 't_cover_big');
+        await attachStatistics([game]);
+
+        res.status(200).json(game);
     } catch (error) {
         console.log('Error querying IGDB:', error.message);
         res.status(500).json({ error: 'Error querying IGDB' });
     }
 });
 
-router.get('/newreleases', injectToken, async (req, res) => {
-    const limit = Math.min(parseInt(req.query.limit) || 10, 100);
-    const offset = parseInt(req.query.offset) || 0;
-    const accessToken = req.accessToken;
-
-    const now = Math.floor(Date.now() / 1000);
-    const oneMonthAgo = now - 30 * 24 * 60 * 60;
-
-    try {
-        const query = `fields id, name, cover.url, first_release_date, game_type, version_parent;
-                       where first_release_date != null 
-                       & game_type = (0,4,8,9,10)
-                       & first_release_date > ${oneMonthAgo}
-                       & first_release_date <= ${now}
-                       & cover != null;
-                       sort total_rating_count desc;
-                       limit ${limit};
-                       offset ${offset};
-                       `;
-
-        const response = await axios.post(
-            'https://api.igdb.com/v4/games',
-            query,
-            {
-                headers: {
-                    'Client-ID': CLIENT_ID,
-                    Authorization: `Bearer ${accessToken}`,
-                    Accept: 'application/json',
-                },
-            },
-        );
-
-        const formatted = (response.data || []).map((g) => ({
-            id: g.id,
-            name: g.name,
-            coverUrl: g.cover
-                ? g.cover.url.replace('t_thumb', 't_cover_big')
-                : 'https://placehold.co/150x200?text=No+Image',
-        }));
-        res.json({ games: formatted });
-    } catch (error) {
-        console.error('Error fetching new releases:', error.message);
-        res.status(500).json({ error: 'Error fetching new releases' });
-    }
-});
-
 router.get('/genres', injectToken, async (req, res) => {
+    res.set('Cache-Control', 'public, max-age=86400');
     const accessToken = req.accessToken;
     try {
         const headers = {
@@ -232,7 +210,7 @@ router.get('/genres', injectToken, async (req, res) => {
             return true;
         });
 
-        res.json(merged);
+        res.status(200).json(merged);
     } catch (error) {
         console.error('Error fetching genres/themes:', error.message);
         res.status(500).json({ error: 'Failed to fetch genres/themes' });
@@ -243,6 +221,9 @@ router.get('/games', injectToken, async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 10, 100);
     const offset = parseInt(req.query.offset) || 0;
     const genre = req.query.genre;
+    const includeStats = req.query.includeStats === 'true';
+    const includeCount = req.query.includeCount === 'true';
+    const newReleases = req.query.newReleases === 'true';
 
     const accessToken = req.accessToken;
 
@@ -260,6 +241,15 @@ router.get('/games', injectToken, async (req, res) => {
             filters.push(`id = (${ids})`)
         }
 
+        if (newReleases) {
+            const now = Math.floor(Date.now() / 1000);
+            const oneMonthAgo = now - 30 * 24 * 60 * 60;
+            const newReleaseFilters = [
+                `first_release_date > ${oneMonthAgo}`,
+                `first_release_date <= ${now}`
+            ]
+            filters.push(...newReleaseFilters);
+        }
 
         if (genre && genre !== 'all') {
             const map = await ensureGenreCache();
@@ -277,7 +267,17 @@ router.get('/games', injectToken, async (req, res) => {
         const whereClause = `where ${filters.join(' & ')}`;
 
         const query = `
-            fields id, name, cover.url, game_type, version_parent, first_release_date, total_rating_count;
+            fields 
+                id, 
+                name, 
+                cover.url, 
+                game_type, 
+                version_parent, 
+                first_release_date, 
+                total_rating_count, 
+                involved_companies.company.name, 
+                involved_companies.developer, 
+                involved_companies.publisher;
             ${whereClause};
             sort total_rating_count desc;
             limit ${limit};
@@ -296,30 +296,45 @@ router.get('/games', injectToken, async (req, res) => {
             },
         );
 
-        const formattedGames = (apiResponse.data || []).map((g) => {
-            let coverUrl;
-            if (g.cover && g.cover.url) {
-                coverUrl = g.cover.url.replace('t_thumb', 't_cover_big');
-            } else {
-                coverUrl = 'https://placehold.co/150x200?text=No+Image';
+
+        const games = apiResponse.data.map(game => {
+            if (game.cover?.url) {
+                game.cover.url = game.cover.url.replace('t_thumb', 't_cover_big');
             }
-            return {
-                id: g.id,
-                name: g.name,
-                coverUrl: coverUrl,
-            };
+            return game;
         });
 
-        res.json({ games: formattedGames });
+        if (includeStats) {
+            await attachStatistics(games);
+        }
+
+        if (includeCount) {
+            const countResponse = await axios.post(
+                'https://api.igdb.com/v4/games/count',
+                `${whereClause};`,
+                {
+                    headers: {
+                        'Client-ID': CLIENT_ID,
+                        Authorization: `Bearer ${accessToken}`,
+                        Accept: 'application/json',
+                    },
+                },
+            );
+            return res.status(200).json({ games: games, count: countResponse.data.count });
+        } else {
+            return res.status(200).json({ games: games });
+        }
     } catch (error) {
         console.error('Error fetching games:', error.message);
         res.status(500).json({ error: 'Error fetching games' });
     }
 });
 
-router.get('/mostreviewed', async (req, res) => {
+router.get('/mostreviewed', injectToken, async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 25, 50);
     const offset = parseInt(req.query.offset) || 0;
+    const includeStats = req.query.includeStats === 'true';
+    const accessToken = req.accessToken;
 
     try {
         const { rows } = await pool.query(
@@ -334,16 +349,30 @@ router.get('/mostreviewed', async (req, res) => {
             [limit, offset],
         );
 
+        const reviewedCount = await pool.query(
+            `SELECT COUNT(*) AS count
+            FROM reviews
+            WHERE deleted_at IS NULL
+            GROUP BY game_id
+            HAVING COUNT(*) >= 1`,
+        );
+
         if (!rows.length) {
             return res.json({ games: [] });
         }
 
         const ids = rows.map((r) => r.game_id);
 
-        const accessToken = await getTwitchToken();
-
         const query = `
-            fields id, name, cover.url, first_release_date, total_rating_count;
+            fields 
+                id, 
+                name, 
+                cover.url, 
+                first_release_date, 
+                total_rating_count, 
+                involved_companies.company.name, 
+                involved_companies.developer, 
+                involved_companies.publisher;
             where id = (${ids.join(',')}) & cover != null;
             limit ${ids.length};
         `;
@@ -366,15 +395,18 @@ router.get('/mostreviewed', async (req, res) => {
             (a, b) => ids.indexOf(a.id) - ids.indexOf(b.id),
         );
 
-        const games = igdbGames.map((g) => ({
-            id: g.id,
-            name: g.name,
-            coverUrl: g.cover
-                ? g.cover.url.replace('t_thumb', 't_cover_big')
-                : 'https://placehold.co/150x200?text=No+Image',
-        }));
+        const games = igdbGames.map(game => {
+            if (game.cover?.url) {
+                game.cover.url = game.cover.url.replace('t_thumb', 't_cover_big');
+            }
+            return game;
+        });
 
-        return res.json({ games });
+        if (includeStats) {
+            await attachStatistics(games);
+        }
+
+        return res.json({ games: games, count: reviewedCount });
     } catch (err) {
         console.error('Error in /api/mostreviewed:', err.message);
         return res
@@ -383,23 +415,21 @@ router.get('/mostreviewed', async (req, res) => {
     }
 });
 
-router.get('/toprated', async (req, res) => {
+router.get('/toprated', injectToken, async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 25, 50);
     const offset = parseInt(req.query.offset) || 0;
+    const includeStats = req.query.includeStats === 'true';
+    const accessToken = req.accessToken;
 
     try {
         const { rows } = await pool.query(
             `
-            SELECT r.game_id, AVG(ug.rating) AS avg_rating, COUNT(*) AS review_count
-            FROM reviews r
-            JOIN user_games ug
-                ON ug.user_id = r.user_id
-               AND ug.game_id = r.game_id
-            WHERE r.deleted_at IS NULL
-              AND ug.rating IS NOT NULL
-            GROUP BY r.game_id
+            SELECT game_id, AVG(rating) AS avg_rating, COUNT(*) AS rating_count
+            FROM user_games
+            WHERE rating IS NOT NULL
+            GROUP BY game_id
             HAVING COUNT(*) >= 1
-            ORDER BY avg_rating DESC, review_count DESC
+            ORDER BY avg_rating DESC, rating_count DESC
             LIMIT $1 OFFSET $2;
             `,
             [limit, offset],
@@ -411,10 +441,24 @@ router.get('/toprated', async (req, res) => {
 
         const ids = rows.map((r) => r.game_id);
 
-        const accessToken = await getTwitchToken();
+        const ratedCount = await pool.query(
+            `SELECT COUNT(*) AS count
+            FROM user_games
+            WHERE rating IS NOT NULL
+            GROUP BY game_id
+            HAVING COUNT(*) >= 1`,
+        );
 
         const query = `
-            fields id, name, cover.url, first_release_date, total_rating_count;
+            fields
+                id, 
+                name, 
+                cover.url, 
+                first_release_date, 
+                total_rating_count, 
+                involved_companies.company.name, 
+                involved_companies.developer, 
+                involved_companies.publisher;
             where id = (${ids.join(',')}) & cover != null;
             limit ${ids.length};
         `;
@@ -437,15 +481,18 @@ router.get('/toprated', async (req, res) => {
             (a, b) => ids.indexOf(a.id) - ids.indexOf(b.id),
         );
 
-        const games = igdbGames.map((g) => ({
-            id: g.id,
-            name: g.name,
-            coverUrl: g.cover
-                ? g.cover.url.replace('t_thumb', 't_cover_big')
-                : 'https://placehold.co/150x200?text=No+Image',
-        }));
+        const games = igdbGames.map(game => {
+            if (game.cover?.url) {
+                game.cover.url = game.cover.url.replace('t_thumb', 't_cover_big');
+            }
+            return game;
+        });
 
-        return res.json({ games });
+        if (includeStats) {
+            await attachStatistics(games);
+        }
+
+        return res.json({ games: games, count: ratedCount.rows[0].count });
     } catch (err) {
         console.error('Error in /api/toprated:', err.message);
         return res

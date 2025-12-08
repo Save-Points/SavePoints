@@ -1,59 +1,7 @@
 import { generateGameCards } from "./utils/gameCard.js";
 
-let gameListIndex = 0;
-let currentGenre = 'all';
-let gameListIndexNew = 0;
-let gameListIndexMostReviewed = 0;
-let gameListIndexTopRated = 0;
-
-function fetchGenres() {
-    const dropdown = document.getElementById('genreFilter');
-    dropdown.innerHTML = '';
-
-    fetch('/api/genres')
-        .then((res) => res.json())
-        .then((genres) => {
-            const allOption = document.createElement('option');
-            allOption.value = 'all';
-            allOption.textContent = 'All Genres';
-            dropdown.appendChild(allOption);
-            if (!Array.isArray(genres)) return;
-
-            genres.forEach((g) => {
-                let name;
-                if (typeof g === 'string') {
-                    name = g;
-                } else if (g && typeof g === 'object') {
-                    if (g.name) {
-                        name = g.name;
-                    } else if (g.id) {
-                        name = String(g.id);
-                    } else {
-                        name = null;
-                    }
-                }
-
-                if (!name || name == 'Card & Board Game') return;
-                const display = name[0].toUpperCase() + name.slice(1);
-                const option = document.createElement('option');
-                option.value = name.toLowerCase();
-                option.textContent = display;
-                dropdown.appendChild(option);
-            });
-        })
-        .catch((error) => {
-            console.error('Error loading genres:', error);
-        });
-}
-
-document.getElementById('genreFilter').addEventListener('change', (e) => {
-    currentGenre = e.target.value || 'all';
-    loadGames(true);
-});
-
 async function loadGames(reset = false) {
-    if (reset) gameListIndex = 0;
-    const url = `/api/games?limit=25&offset=${gameListIndex}&genre=${currentGenre}`;
+    const url = `/api/games?limit=25&includeStats=false&includeCount=false`;
     fetch(url)
         .then((res) => res.json())
         .then(async (data) => {
@@ -64,13 +12,12 @@ async function loadGames(reset = false) {
             for (const card of cards) {
                 container.appendChild(card);
             }
-            gameListIndex += 10;
         })
         .catch((error) => console.error('Error loading games:', error));
 }
 
 function loadNewReleases() {
-    const url = `/api/newreleases?limit=25&offset=${gameListIndexNew}`;
+    const url = `/api/games?newReleases=true&limit=25&includeStats=false&includeCount=false`;
     fetch(url)
         .then((res) => res.json())
         .then(async (data) => {
@@ -79,13 +26,12 @@ function loadNewReleases() {
             for (const card of cards) {
                 container.appendChild(card);
             }
-            gameListIndexNew += 10;
         })
         .catch((error) => console.error('Error loading new releases:', error));
 }
 
 function loadMostReviewed() {
-    const url = `/api/mostreviewed?limit=25&offset=${gameListIndexMostReviewed}`;
+    const url = `/api/mostreviewed?limit=25`;
     fetch(url)
         .then((res) => res.json())
         .then(async (data) => {
@@ -96,8 +42,6 @@ function loadMostReviewed() {
             for (const card of cards) {
                 container.appendChild(card);
             }
-            // keep same pagination style you used for new releases
-            gameListIndexMostReviewed += 10;
         })
         .catch((error) =>
             console.error('Error loading most reviewed games:', error),
@@ -105,7 +49,7 @@ function loadMostReviewed() {
 }
 
 function loadTopRated() {
-    const url = `/api/toprated?limit=25&offset=${gameListIndexTopRated}`;
+    const url = `/api/toprated?limit=25`;
     fetch(url)
         .then((res) => res.json())
         .then(async (data) => {
@@ -116,7 +60,6 @@ function loadTopRated() {
             for (const card of cards) {
                 container.appendChild(card);
             }
-            gameListIndexTopRated += 10;
         })
         .catch((error) =>
             console.error('Error loading top rated games:', error),
@@ -135,16 +78,12 @@ function setupScrollButtons() {
     });
 }
 
-document.getElementById('genreFilter').onchange = (e) => {
-    currentGenre = e.target.value;
-    loadGames(true);
-};
-
-document.addEventListener("DOMContentLoaded", () => {
-    fetchGenres();
-    loadGames(true);
-    loadNewReleases();
-    loadMostReviewed();
-    loadTopRated();
-    setupScrollButtons();
+document.addEventListener("DOMContentLoaded", async () => {
+    await Promise.all([
+        loadGames(true),
+        loadNewReleases(),
+        loadMostReviewed(),
+        loadTopRated(),
+        setupScrollButtons()
+    ]);
 });

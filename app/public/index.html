@@ -8,13 +8,10 @@
     <body>
         <div id="header"></div>
         <div class="content-wrapper">
-            <div class="container-large" style="border-right: 1px solid #e5e5e5">
                 <div class="list-section">
                     <div class="list-header">
-                        <h2>Popular Games</h2>
-                        <select id="genreFilter">
-                            <option value="all">All Genres</option>
-                        </select>
+                        <h2>Most Popular Games</h2>
+                        <a href="/games?type=popular&page=1&genre=all">View More</a>
                     </div>
                     <div class="carousel-wrapper">
                         <button class="scroll-btn-left">&lt;</button>
@@ -26,7 +23,8 @@
 
                 <div class="list-section">
                     <div class="list-header">
-                        <h2>New Releases</h2>
+                        <h2>Top New Releases</h2>
+                        <a href="/games?type=new-releases&genre=all&page=1">View More</a>
                     </div>
                     <div class="carousel-wrapper">
                         <button class="scroll-btn-left">&lt;</button>
@@ -38,6 +36,7 @@
                 <div class="list-section">
                     <div class="list-header">
                         <h2>Most Reviewed</h2>
+                        <a href="/games?type=most-reviewed&genre=all&page=1">View More</a>
                     </div>
                     <div class="carousel-wrapper">
                         <button class="scroll-btn-left">&lt;</button>
@@ -49,6 +48,7 @@
                 <div class="list-section">
                     <div class="list-header">
                         <h2>Top Rated</h2>
+                        <a href="/games?type=top-rated&genre=all&page=1">View More</a>
                     </div>
                     <div class="carousel-wrapper">
                         <button class="scroll-btn-left">&lt;</button>
@@ -56,16 +56,20 @@
                         <button class="scroll-btn-right">&gt;</button>
                     </div>
                 </div>
-            </div>  
-            <div class="container-small" style="border: none;"></div>
         </div>
 
 
         <script src="index.js" type="module"></script>
         <script type="module"> 
             import { loadHeader } from './header.js';
-            document.addEventListener("DOMContentLoaded", () => {
-                loadHeader();
+            document.addEventListener("DOMContentLoaded", async () => {
+                await loadHeader();
+
+                const homeTab = document.getElementById('homeTab');
+                const gamesTab = document.getElementById('gamesTab');
+
+                homeTab.classList.add('active');
+                gamesTab.classList.remove('active');
             });
         </script> 
     </body>

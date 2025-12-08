@@ -4,6 +4,8 @@
         <meta charset="utf-8" />
         <title>Profile</title>
         <link rel="stylesheet" href="/style.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     </head>
     <body>
         <div id="header"></div>
@@ -25,7 +27,7 @@
                 </div>
 
                 <div class="list-header">
-                    <h3>Friends</h3>
+                    <h3 id="friendsHeader"></h3>
                     <a id="viewFriends" style="font-size: 0.8rem" class="view-all">View All</a>
                 </div>
                 <div id="friendsContainer" style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
@@ -34,13 +36,12 @@
 
             </div>
         <div class="container-large" style="padding-left: 0; border-bottom: 1p solid white;">
-            <ul>
-                <li><a id="overview" class="profile-tab active">Overview</a></li>
+            <ul class="page-ul">
+                <li><a id="overview" class="profile-tab">Overview</a></li>
                 <li><a id="reviews" class="profile-tab">Reviews</a></li>
                 <li><a id="friends" class="profile-tab">Friends</a></li>
             </ul>
-            <div id="contentDiv" style="padding: 10px;">
-            </div>
+            <div id="contentDiv" style="padding: 10px; max-width: 1175px"></div>
         </div>
     </div>
         </table>

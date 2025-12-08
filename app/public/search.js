@@ -41,7 +41,7 @@ async function loadSearchList() {
 
                         clearSearchBody();
                         for (const game of body.games) {
-                            const gameUrl = `/game?id=${game.id}`
+                            const gameUrl = `/game?id=${game.id}&tab=overview`
                             const row = document.createElement('tr');
                             const imgTd = document.createElement('td');
                             const imgLink = document.createElement('a');
@@ -50,6 +50,7 @@ async function loadSearchList() {
                             const img = document.createElement('img');
                             img.src = game.cover.url.replace('t_thumb', 't_cover_big');
                             img.alt = game.name;
+                            img.loading = 'lazy';
 
                             imgLink.appendChild(img);
                             imgTd.appendChild(imgLink);
@@ -123,6 +124,7 @@ async function loadSearchList() {
                                 img.src = imageUrl;
                                 img.alt = user.username;
                                 img.className = 'user-profile-pic';
+                                img.loading = 'lazy';
 
                                 imgLink.appendChild(img);
                                 imgTd.appendChild(imgLink);
@@ -208,6 +210,7 @@ function setupSearch() {
 
 function renderPagination(count) {
     paginationTop.textContent = '';
+    paginationBottom.textContent = '';
     const totalPages = Math.ceil(count / ITEMS_PER_PAGE);
 
     const getPageLinks = () => {
@@ -286,7 +289,9 @@ function renderPagination(count) {
 }
 
 
-document.addEventListener("DOMContentLoaded", () => {
-    loadSearchList();
-    setupSearch();
+document.addEventListener("DOMContentLoaded", async () => {
+    await Promise.all([
+        loadSearchList(),
+        setupSearch()
+    ]);
 });

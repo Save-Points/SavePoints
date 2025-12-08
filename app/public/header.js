@@ -27,6 +27,7 @@ async function setupLogin() {
     const profileLink = document.getElementById('profileLink');
     const picLink = document.getElementById('picLink');
     const profileContainer = document.getElementById('profileContainer');
+    const gameListLink = document.getElementById('gameListLink');
 
     const userDropdown = document.getElementById('userDropdown');
 
@@ -40,13 +41,14 @@ async function setupLogin() {
             profileContainer.classList.add('hidden');
         } else {
             response.json().then((body) => {
-                const profileUrl = `/profile/${body.username}`
+                const profileUrl = `/profile/${body.username}`;
                 loginButton.classList.add('hidden');
                 signupButton.classList.add('hidden');
                 profileContainer.classList.remove('hidden');
                 profileButton.classList.remove('hidden');
                 profileButton.textContent = `${body.username} ▼`;
                 profileLink.href = profileUrl;
+                gameListLink.href = `/gamelist/${body.username}`;
 
                 const img = document.createElement('img');
                 img.src = body.profile_pic_url  || '/images/default_profile_pic.jpg';
@@ -80,6 +82,7 @@ async function setupLogin() {
             .catch((error) => {
                 console.log(`Logout failed: ${error}`);
             });
+        localStorage.clear();
     });
 
     profileButton.addEventListener('click', () => {

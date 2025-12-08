@@ -126,7 +126,7 @@ router.post('/:replyId/vote', authorize, async (req, res) => {
                         );
 
                         if (exists.rows.length === 0) {
-                            const link = `/game?id=${gameId}`;
+                            const link = `/game?id=${gameId}&tab=reviews`;
 
                             await sendNotification(ownerId, 'upvote', `${senderName} upvoted your comment`, link);
                         }
