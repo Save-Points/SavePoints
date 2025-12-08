@@ -642,11 +642,16 @@ function renderReply(reply, depth) {
     const edited = reply.updated_at && reply.updated_at !== reply.created_at;
 
     const userVote = reply.user_vote === 'upvote' ? 'up' : reply.user_vote === 'downvote' ? 'down' : null;
+    const profilePic = reply.profile_pic_url || '/images/default_profile_pic.jpg';
 
     return `
-        <div class="review-card" style="margin-left: ${indent}px" data-reply-id="${reply.id}">
+    <div class="review-card" style="margin-left: ${indent}px; display: flex; gap: 12px;" data-reply-id="${reply.id}">
+        <a href="/profile/${escapeHtml(reply.username)}" style="flex-shrink: 0;">
+            <img src="${profilePic}" alt="${escapeHtml(reply.username)}" style="width: 40px; height: 40px; object-fit: cover;">
+        </a>
+        <div style="flex: 1; min-width: 0;">
             <div class="review-header-line">
-                <strong>${escapeHtml(reply.username)}</strong>
+                <a href="/profile/${escapeHtml(reply.username)}"><strong>${escapeHtml(reply.username)}</strong></a>
                 <span class="review-meta">
                     <small>${new Date(reply.created_at).toLocaleString()}</small>
                     ${edited ? `<small> • Edited at ${new Date(reply.updated_at).toLocaleString()}</small>` : ""}
@@ -656,26 +661,27 @@ function renderReply(reply, depth) {
             <div class="review-actions">
                 <button class="vote-btn${userVote === 'up' ? ' vote-btn-active-up' : ''}" data-action="reply-upvote" data-reply-id="${reply.id}">▲ ${reply.upvotes}</button>
                 <button class="vote-btn${userVote === 'down' ? ' vote-btn-active-down' : ''}" data-action="reply-downvote" data-reply-id="${reply.id}">▼ ${reply.downvotes}</button>
-                <button class="small-btn" data-action="reply-reply" data-reply-id="${reply.id}">Reply</button>
-                ${isOwner ? `<button class="small-btn" data-action="reply-edit" data-reply-id="${reply.id}">Edit</button>` : "" }
-                ${isOwner ? `<button class="small-btn" data-action="reply-delete" data-reply-id="${reply.id}">Delete</button>` : "" }
+                <button class="action-btn" data-action="reply-reply" data-reply-id="${reply.id}">Reply</button>
+                ${isOwner ? `<button class="action-btn" data-action="reply-edit" data-reply-id="${reply.id}">Edit</button>` : "" }
+                ${isOwner ? `<button class="action-btn" data-action="reply-delete" data-reply-id="${reply.id}">Delete</button>` : "" }
             </div>
 
             <div class="reply-input hidden" data-parent-reply="${reply.id}">
                 <textarea class="reply-textarea" placeholder="Reply..."></textarea>
                 <br />
-                <button class="small-btn" data-action="send-nested-reply" data-parent-reply="${reply.id}" data-review-id="${reply.review_id}">
+                <button class="action-btn" data-action="send-nested-reply" data-parent-reply="${reply.id}" data-review-id="${reply.review_id}">
                     Post Reply
                 </button>
             </div>
             <div class="reply-edit hidden" data-reply-id="${reply.id}">
                 <textarea class="reply-edit-textarea">${escapeHtml(reply.display_text)}</textarea>
                 <br>
-                <button class="small-btn" data-action="save-reply-edit" data-reply-id="${reply.id}">Save</button>
-                <button class="small-btn" data-action="cancel-reply-edit" data-reply-id="${reply.id}">Cancel</button>
+                <button class="action-btn" data-action="save-reply-edit" data-reply-id="${reply.id}">Save</button>
+                <button class="action-btn" data-action="cancel-reply-edit" data-reply-id="${reply.id}">Cancel</button>
             </div>
 
             ${reply.replies.map(child => renderReply(child, depth + 1)).join('')}
+        </div>
         </div>
     `;
 }
@@ -690,14 +696,19 @@ function renderReview(review) {
         review.updated_at && review.updated_at !== review.created_at;
 
     const ratingText =
-        review.rating !== null && review.rating !== undefined ? `${+review.rating}/10` : '-';
+        review.rating !== null && review.rating !== undefined ? `${+review.rating}/10` : 'N/A';
 
     const userVote = review.user_vote === 'upvote' ? 'up' : review.user_vote === 'downvote' ? 'down' : null;
+    const profilePic = review.profile_pic_url || '/images/default_profile_pic.jpg';
 
     return `
-        <div class="review-card" data-review-id="${review.id}">
+    <div class="review-card" style="display: flex; gap: 12px;" data-review-id="${review.id}">
+        <a href="/profile/${escapeHtml(review.username)}" style="flex-shrink: 0;">
+            <img src="${profilePic}" alt="${escapeHtml(review.username)}" style="width: 40px; height: 40px; object-fit: cover;">
+        </a>
+        <div style="flex: 1; min-width: 0;">
             <div class="review-header-line">
-                <strong>${escapeHtml(review.username)}</strong>
+                <a href="/profile/${escapeHtml(review.username)}"><strong>${escapeHtml(review.username)}</strong></a>
                 <span> — Rating: ${ratingText}</span>
             </div>
 
@@ -717,17 +728,18 @@ function renderReview(review) {
             <div class="edit-input hidden" data-review-id="${review.id}">
                 <textarea class="edit-textarea">${escapeHtml(review.display_text,)}</textarea>
                 <br />
-                <button class="small-btn" data-action="save-edit" data-review-id="${review.id}">Save</button>
-                <button class="small-btn" data-action="cancel-edit" data-review-id="${review.id}">Cancel</button>
+                <button class="action-btn" data-action="save-edit" data-review-id="${review.id}">Save</button>
+                <button class="action-btn" data-action="cancel-edit" data-review-id="${review.id}">Cancel</button>
             </div>
 
             <div class="reply-input hidden" data-review-id="${review.id}">
                 <textarea class="reply-textarea" placeholder="Reply..."></textarea>
                 <br />
-                <button class="small-btn" data-action="send-reply" data-review-id="${review.id}">Post Reply</button>
+                <button class="action-btn" data-action="send-reply" data-review-id="${review.id}">Post Reply</button>
             </div>
 
             ${review.replies.map((rep) => renderReply(rep, 1)).join('')}
+        </div>
         </div>
     `;
 }

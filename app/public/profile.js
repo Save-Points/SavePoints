@@ -708,10 +708,26 @@ async function loadReviewsTab() {
             const card = document.createElement('div');
             card.className = 'review-card clickable-review-card';
             card.style.cursor = 'pointer';
+            card.style.display = 'flex';
+            card.style.gap = '16px';
 
             card.addEventListener('click', () => {
                 window.location.href = `/game?id=${rev.game_id}&tab=reviews`;
             });
+
+
+            const img = document.createElement('img');
+            img.src = g.igdb.cover.url.replace('t_thumb', 't_cover_small');
+            img.alt = g.igdb.name;
+            img.style.width = '80px';
+            img.style.height = 'auto';
+            img.style.borderRadius = '4px';
+            img.style.flexShrink = '0';
+            card.appendChild(img);
+
+            const contentContainer = document.createElement('div');
+            contentContainer.style.flex = '1';
+            contentContainer.style.minWidth = '0';
 
             const topRow = document.createElement('div');
             topRow.className = 'review-header-line';
@@ -737,9 +753,11 @@ async function loadReviewsTab() {
             const textP = document.createElement('p');
             textP.textContent = rev.review_text || '';
 
-            card.appendChild(topRow);
-            card.appendChild(meta);
-            card.appendChild(textP);
+            contentContainer.appendChild(topRow);
+            contentContainer.appendChild(meta);
+            contentContainer.appendChild(textP);
+
+            card.appendChild(contentContainer);
 
             list.appendChild(card);
         });
