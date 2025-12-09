@@ -28,6 +28,7 @@ function handleLogin() {
         .catch((error) => {
             messageDiv.textContent = `Error: ${error}`;
         });
+    localStorage.removeItem('favoriteIds');
 }
 
 loginButton.addEventListener('click', handleLogin);
