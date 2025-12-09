@@ -70,7 +70,7 @@ router.post('/search', injectToken, async (req, res) => {
     const filters = `where game_type = (0,4,8,9,10)
         & cover != null & cover.url != null
         & version_parent = null
-        & (total_rating_count > 0 | id = 286959)
+        & total_rating_count > 0
         & first_release_date != null;`;
 
     try {
