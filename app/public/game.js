@@ -585,8 +585,8 @@ submitReviewBtn.addEventListener('click', async () => {
         },
         body: JSON.stringify({
             gameId: gameId,
-            rating: reviewRating,
-            hoursPlayed: reviewHoursPlayed,
+            rating: reviewRating !== '' ? Math.max(0, Math.min(parseFloat(reviewRating), 10)) : null,
+            hoursPlayed: reviewHoursPlayed !== '' ? Math.max(0, parseFloat(reviewHoursPlayed)) : null,
             status: reviewStatus,
         })
     });
@@ -642,7 +642,7 @@ async function loadAddEntry() {
             userGameInput.classList.add('show');
 
             entryStatus.value = entry.status;
-            entryHoursPlayed.value = entry.hoursPlayed || '';
+            entryHoursPlayed.value = entry.hours_played || '';
             entryRating.value = entry.rating || '';
             submitButton.textContent = 'Update'
         } else {
@@ -731,6 +731,8 @@ function renderReview(review) {
 
     const ratingText =
         review.rating !== null && review.rating !== undefined ? `${+review.rating}/10` : 'N/A';
+    console.log(review);
+    const hoursText = review.hours_played !== null && review.hours_played !== undefined ? `• ${+review.hours_played}h Played` : '';
 
     const userVote = review.user_vote === 'upvote' ? 'up' : review.user_vote === 'downvote' ? 'down' : null;
     const profilePic = review.profile_pic_url || '/images/default_profile_pic.jpg';
@@ -743,7 +745,7 @@ function renderReview(review) {
         <div style="flex: 1; min-width: 0;">
             <div class="review-header-line">
                 <a href="/profile/${escapeHtml(review.username)}"><strong>${escapeHtml(review.username)}</strong></a>
-                <span> — Rating: ${ratingText}</span>
+                <span> — Rating: ${ratingText} ${hoursText}</span>
             </div>
 
             <div class="review-meta">
@@ -801,8 +803,8 @@ submitButton.addEventListener('click', () => {
         },
         body: JSON.stringify({
             status: entryStatus.value !== '' ? entryStatus.value : null,
-            hoursPlayed: entryHoursPlayed.value !== '' ? entryHoursPlayed.value : null, 
-            rating: entryRating.value !== '' ? entryRating.value : null,
+            hoursPlayed: entryHoursPlayed.value !== '' ? Math.max(0, parseFloat(entryHoursPlayed.value)) : null, 
+            rating: entryRating.value !== '' ? Math.max(0, Math.min(parseFloat(entryRating.value), 10)) : null,
             gameId: gameId
         })
     }).then((response => {
