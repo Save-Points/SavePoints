@@ -47,7 +47,7 @@ router.post('/add', authorize, async (req, res) => {
 
 router.get("/", authorize, async (req, res) => {
     const userId = req.user.id;
-    const favorites = req.query.favorites;
+    const favorites = req.query.favorites === 'true';
     const gameIds = req.query.gameIds ? req.query.gameIds.split(',').map(id => Number(id)) : null;
 
     try {
