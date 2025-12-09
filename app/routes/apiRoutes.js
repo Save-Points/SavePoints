@@ -330,35 +330,100 @@ router.get('/games', injectToken, async (req, res) => {
     }
 });
 
-router.get('/mostreviewed', injectToken, async (req, res) => {
+router.get('/popular', injectToken, async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 25, 50);
     const offset = parseInt(req.query.offset) || 0;
     const includeStats = req.query.includeStats === 'true';
     const accessToken = req.accessToken;
+    const sortBy = req.query.sortBy;
+
+    if (!sortBy) {
+        return res.status(400).json({ error: "Missing sort by value."});
+    }
+
+    let rows;
+    let response;
+    let count;
 
     try {
-        const { rows } = await pool.query(
-            `
-            SELECT r.game_id, COUNT(*) AS review_count
-            FROM reviews r
-            WHERE r.deleted_at IS NULL
-            GROUP BY r.game_id
-            ORDER BY review_count DESC
-            LIMIT $1 OFFSET $2;
-            `,
-            [limit, offset],
-        );
+        switch (sortBy) {
+            case 'rating':
+                response = await pool.query(
+                    `
+                    SELECT game_id, AVG(rating) AS avg_rating, COUNT(*) AS rating_count
+                    FROM user_games
+                    WHERE rating IS NOT NULL
+                    GROUP BY game_id
+                    HAVING COUNT(*) >= 1
+                    ORDER BY avg_rating DESC, rating_count DESC
+                    LIMIT $1 OFFSET $2;
+                    `,
+                    [limit, offset],
+                );
 
-        const reviewedCount = await pool.query(
-            `SELECT COUNT(*) AS count
-            FROM reviews
-            WHERE deleted_at IS NULL
-            GROUP BY game_id
-            HAVING COUNT(*) >= 1`,
-        );
+                rows = response.rows;
+
+                count = await pool.query(
+                    `SELECT COUNT(*) AS count
+                    FROM user_games
+                    WHERE rating IS NOT NULL
+                    GROUP BY game_id
+                    HAVING COUNT(*) >= 1`,
+                );
+
+                break;
+            case 'reviews':
+                response = await pool.query(
+                    `
+                    SELECT r.game_id, COUNT(*) AS review_count
+                    FROM reviews r
+                    WHERE r.deleted_at IS NULL
+                    GROUP BY r.game_id
+                    ORDER BY review_count DESC
+                    LIMIT $1 OFFSET $2;
+                    `,
+                    [limit, offset],
+                );
+                rows = response.rows;
+
+                count = await pool.query(
+                    `SELECT COUNT(*) AS count
+                    FROM reviews
+                    WHERE deleted_at IS NULL
+                    GROUP BY game_id
+                    HAVING COUNT(*) >= 1`,
+                );
+                
+                break;
+            case 'favorites':
+                response = await pool.query(
+                    `
+                    SELECT game_id, COUNT(*) AS favorite_count
+                    FROM user_games
+                    WHERE favorited = TRUE
+                    GROUP BY game_id
+                    HAVING COUNT(*) >= 1
+                    ORDER BY favorite_count DESC
+                    LIMIT $1 OFFSET $2;
+                    `,
+                    [limit, offset],
+                );
+                rows = response.rows;
+
+                count = await pool.query(
+                    `SELECT COUNT(*) AS count
+                    FROM user_games
+                    WHERE favorited = TRUE
+                    GROUP BY game_id
+                    HAVING COUNT(*) >= 1`,
+                );
+                break;
+            default:
+                break;
+        }
 
         if (!rows.length) {
-            return res.json({ games: [] });
+            return res.json({ games: [] });;
         }
 
         const ids = rows.map((r) => r.game_id);
@@ -406,98 +471,10 @@ router.get('/mostreviewed', injectToken, async (req, res) => {
             await attachStatistics(games);
         }
 
-        return res.json({ games: games, count: reviewedCount });
-    } catch (err) {
-        console.error('Error in /api/mostreviewed:', err.message);
-        return res
-            .status(500)
-            .json({ error: 'Failed to load most reviewed games' });
-    }
-});
-
-router.get('/toprated', injectToken, async (req, res) => {
-    const limit = Math.min(parseInt(req.query.limit) || 25, 50);
-    const offset = parseInt(req.query.offset) || 0;
-    const includeStats = req.query.includeStats === 'true';
-    const accessToken = req.accessToken;
-
-    try {
-        const { rows } = await pool.query(
-            `
-            SELECT game_id, AVG(rating) AS avg_rating, COUNT(*) AS rating_count
-            FROM user_games
-            WHERE rating IS NOT NULL
-            GROUP BY game_id
-            HAVING COUNT(*) >= 1
-            ORDER BY avg_rating DESC, rating_count DESC
-            LIMIT $1 OFFSET $2;
-            `,
-            [limit, offset],
-        );
-
-        if (!rows.length) {
-            return res.json({ games: [] });
-        }
-
-        const ids = rows.map((r) => r.game_id);
-
-        const ratedCount = await pool.query(
-            `SELECT COUNT(*) AS count
-            FROM user_games
-            WHERE rating IS NOT NULL
-            GROUP BY game_id
-            HAVING COUNT(*) >= 1`,
-        );
-
-        const query = `
-            fields
-                id, 
-                name, 
-                cover.url, 
-                first_release_date, 
-                total_rating_count, 
-                involved_companies.company.name, 
-                involved_companies.developer, 
-                involved_companies.publisher;
-            where id = (${ids.join(',')}) & cover != null;
-            limit ${ids.length};
-        `;
-
-        const igdbRes = await axios.post(
-            'https://api.igdb.com/v4/games',
-            query,
-            {
-                headers: {
-                    'Client-ID': CLIENT_ID,
-                    Authorization: `Bearer ${accessToken}`,
-                    Accept: 'application/json',
-                },
-            },
-        );
-
-        const igdbGames = igdbRes.data || [];
-
-        igdbGames.sort(
-            (a, b) => ids.indexOf(a.id) - ids.indexOf(b.id),
-        );
-
-        const games = igdbGames.map(game => {
-            if (game.cover?.url) {
-                game.cover.url = game.cover.url.replace('t_thumb', 't_cover_big');
-            }
-            return game;
-        });
-
-        if (includeStats) {
-            await attachStatistics(games);
-        }
-
-        return res.json({ games: games, count: ratedCount.rows[0].count });
-    } catch (err) {
-        console.error('Error in /api/toprated:', err.message);
-        return res
-            .status(500)
-            .json({ error: 'Failed to load top rated games' });
+        return res.json({ games: games, count: count.rows[0].count });
+    } catch (error) {
+        console.error('FAILED QUERYING POPULAR GAMES:', error.message);
+        return res.status(500).json({ error: 'Internal server error.' });
     }
 });
 

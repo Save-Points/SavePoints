@@ -138,8 +138,6 @@ async function acceptFriendRequest(requesterId) {
 }
 
 async function removeConnection(targetId) {
-    if (!confirm("Are you sure?")) return;
-
     try {
         const res = await fetch(`/friends/${targetId}`, {
             method: 'DELETE',
@@ -157,9 +155,6 @@ async function removeConnection(targetId) {
 }
 
 async function removeFriendRequest(targetId) {
-    // TODO: do we want to keep this sure message, same with function on top
-    if (!confirm("Are you sure?")) return;
-
     try {
         const res = await fetch(`/friends/${targetId}`, {
             method: 'DELETE',
@@ -264,8 +259,8 @@ async function loadProfile() {
         const dateStr = user.created_at || Date.now();
         const date = new Date(dateStr);
         document.getElementById('joinDate').textContent = date.toLocaleDateString();
-        
-
+        userInfo.upvotes = parseInt(user.total_review_upvotes + user.total_reply_upvotes, 10);
+        userInfo.downvotes = parseInt(user.total_review_downvotes + user.total_reply_downvotes, 10);
         if (user.id) {
             await loadFriends(user.id);
             if (usernameParam) {
@@ -374,7 +369,7 @@ function formatStatus(status) {
     return status.split('-').map(word => word[0].toUpperCase() + word.slice(1)).join(' ');
 }
 
-function createCard(label, value, iconClass) {
+function createCard(label, value, iconClass, iconColor = null) {
     const card = document.createElement('div');
     card.className = 'game-info-card';
     card.style.marginBottom = '10px';
@@ -387,6 +382,10 @@ function createCard(label, value, iconClass) {
         icon.className = `fas ${iconClass}`;
         icon.style.marginRight = '6px';
         statLabel.appendChild(icon);
+
+        if (iconColor) {
+            icon.style.color = iconColor;
+        }
     }
     statLabel.appendChild(document.createTextNode(label));
     card.appendChild(statLabel);
@@ -409,10 +408,10 @@ function loadStatistics() {
     header.style.marginTop = '0';
     const profileContainer = document.createElement('div');
     profileContainer.classList = 'profile-info-container';
-    profileContainer.style = 'gap: 75px;'
+    profileContainer.style = 'gap: 25px;'
 
     const progressContainer = document.createElement('div');
-    progressContainer.style = 'display: flex; flex-direction: column; flex: 0 0 50%';
+    progressContainer.style = 'display: flex; flex-direction: column; flex: 0 0 50%; margin-top: 20px;';
 
     const wrapperDiv = document.createElement('div');
     wrapperDiv.className = 'progress-bar-wrapper';
@@ -461,6 +460,10 @@ function loadStatistics() {
         }
     }
 
+    keyDiv.appendChild(leftColumn);
+    keyDiv.append(middleColumn);
+    keyDiv.appendChild(rightColumn);
+
     const statsContainer = document.createElement('div');
     statsContainer.classList = 'profile-info-container';
 
@@ -471,18 +474,33 @@ function loadStatistics() {
     statsContainer.appendChild(createCard('Average Rating', userInfo.averageRating !== null ? `${+userInfo.averageRating.toFixed(2)}/10` : 'N/A', 'fa-star-half-alt'));
     statsContainer.appendChild(createCard('Average Hours Played', userInfo.averageHoursPlayed !== null ? +userInfo.averageHoursPlayed.toFixed(2) : 'N/A', 'fa-clock'));
     statsContainer.appendChild(createCard('Total Hours Played', userInfo.hoursPlayed !== null ? +userInfo.hoursPlayed.toFixed(2) : 'N/A', 'fa-hourglass'));
-    keyDiv.appendChild(leftColumn);
-    keyDiv.append(middleColumn);
-    keyDiv.appendChild(rightColumn);
+
+    const repContainer = document.createElement('div');
+    repContainer.style = 'display: flex; flex-direction: column; flex: 1;';
+
+    const repHeader = document.createElement('h3');
+    repHeader.classList = 'content-header';
+    repHeader.style.width = 'auto';
+    repHeader.textContent = 'Reputation';
+    repHeader.style.margin = '0 0 8px 0';
+
+    const totalContainer = document.createElement('div');
+    totalContainer.classList = 'profile-info-container';
+
+    const votesContainer = document.createElement('div');
+    votesContainer.classList = 'profile-info-container';
+
+    totalContainer.appendChild(createCard('Total Rep', userInfo.upvotes - userInfo.downvotes, 'fa-balance-scale'));
+    votesContainer.appendChild(createCard('Upvotes', userInfo.upvotes, 'fa-thumbs-up', '#22c55e'));
+    votesContainer.appendChild(createCard('Downvotes', userInfo.downvotes, 'fa-thumbs-down', '#f97373'));
 
     const infoContainer = document.createElement('div');
-    infoContainer.style.width = '100%';
-
+    infoContainer.style.width = '50%';
 
     contentDiv.appendChild(header);
     const progressHeader = document.createElement('h3');
     progressHeader.classList = 'content-header';
-    progressHeader.style.width = 'auto';
+    progressHeader.style.width = '50%';
     progressHeader.textContent = 'Game Status Distribution';
     progressHeader.style.margin = '0 0 8px 0';
 
@@ -500,8 +518,14 @@ function loadStatistics() {
     infoContainer.appendChild(entryContainer);
     infoContainer.appendChild(statsContainer);
     profileContainer.appendChild(infoContainer);
-    profileContainer.appendChild(progressContainer);
+
+    repContainer.appendChild(repHeader);
+    repContainer.appendChild(totalContainer);
+    repContainer.appendChild(votesContainer);
+    profileContainer.appendChild(repContainer);
+
     contentDiv.appendChild(profileContainer);
+    contentDiv.appendChild(progressContainer);
 }
 
 async function createGameList(type) {

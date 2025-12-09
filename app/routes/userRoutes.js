@@ -89,7 +89,23 @@ router.get('/view/:username', async (req, res) => {
     const { username } = req.params;
     try {
         const result = await pool.query(
-            'SELECT id, username, bio, profile_pic_url, created_at FROM users WHERE LOWER(username) = LOWER($1)',
+            `SELECT 
+                u.id,
+                u.username,
+                u.bio,
+                u.profile_pic_url,
+                u.created_at,
+                COALESCE(SUM(CASE WHEN rv.vote = 'upvote' THEN 1 ELSE 0 END), 0)::int AS total_review_upvotes,
+                COALESCE(SUM(CASE WHEN rv.vote = 'downvote' THEN 1 ELSE 0 END), 0)::int AS total_review_downvotes,
+                COALESCE(SUM(CASE WHEN rpv.vote = 'upvote' THEN 1 ELSE 0 END), 0)::int AS total_reply_upvotes,
+                COALESCE(SUM(CASE WHEN rpv.vote = 'downvote' THEN 1 ELSE 0 END), 0)::int AS total_reply_downvotes
+            FROM users u
+            LEFT JOIN reviews r ON r.user_id = u.id
+            LEFT JOIN review_votes rv ON rv.review_id = r.id
+            LEFT JOIN review_replies rr ON rr.user_id = u.id
+            LEFT JOIN reply_votes rpv ON rpv.reply_id = rr.id
+            WHERE LOWER(u.username) = LOWER($1)
+            GROUP BY u.id;`,
             [username]
         );
 

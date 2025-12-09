@@ -138,7 +138,7 @@ function renderGames(games) {
         row.append(statusTd);
 
         const hoursPlayedTd = document.createElement('td');
-        hoursPlayedTd.textContent = game.hours_played;
+        hoursPlayedTd.textContent = game.hours_played ? game.hours_played : '-';
         row.append(hoursPlayedTd);
 
         const reviewTd = document.createElement('td');
