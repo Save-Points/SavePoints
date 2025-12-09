@@ -400,6 +400,22 @@ th.sort-desc::after {
     color: #fff;
 }
 
+.review-card a {
+    color: #5cb5f9;
+}
+
+.review-card a:hover {
+    color: #8acfff;
+}
+
+.review-card a:visited {
+    color: #c08eff;
+}
+
+.review-card a:visited:hover {
+    color: #ddbbff;
+}
+
 .review-card strong {
     font-size: 1.1em;
 }

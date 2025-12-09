@@ -10,13 +10,13 @@ async function getReviewsTree(gameId, currentUserId = null) {
     // queries reviews, user info, and votes
     const reviewsResult = await pool.query(
         `
-        SELECT r.id, r.user_id, r.game_id, r.review_text, r.created_at, r.updated_at, r.deleted_at, u.username, u.profile_pic_url, ug.rating, COALESCE(SUM(CASE WHEN rv.vote = 'upvote' THEN 1 ELSE 0 END), 0) AS upvotes, COALESCE(SUM(CASE WHEN rv.vote = 'downvote' THEN 1 ELSE 0 END), 0) AS downvotes, MAX(CASE WHEN rv.user_id = $2 THEN rv.vote END) AS user_vote
+        SELECT r.id, r.user_id, r.game_id, r.review_text, r.created_at, r.updated_at, r.deleted_at, u.username, u.profile_pic_url, ug.hours_played, ug.rating, COALESCE(SUM(CASE WHEN rv.vote = 'upvote' THEN 1 ELSE 0 END), 0) AS upvotes, COALESCE(SUM(CASE WHEN rv.vote = 'downvote' THEN 1 ELSE 0 END), 0) AS downvotes, MAX(CASE WHEN rv.user_id = $2 THEN rv.vote END) AS user_vote
         FROM reviews r
         JOIN users u ON u.id = r.user_id
         LEFT JOIN user_games ug ON ug.user_id = r.user_id AND ug.game_id = r.game_id
         LEFT JOIN review_votes rv ON rv.review_id = r.id
         WHERE r.game_id = $1
-        GROUP BY r.id, u.username, u.profile_pic_url, ug.rating
+        GROUP BY r.id, u.id, u.username, u.profile_pic_url, ug.hours_played, ug.rating
         ORDER BY r.created_at DESC;
         `,
         [gameId, currentUserId],
@@ -65,6 +65,7 @@ async function getReviewsTree(gameId, currentUserId = null) {
             downvotes: Number(r.downvotes),
             user_vote: r.user_vote,
             replies: [],
+            hours_played: r.hours_played,
         });
     }
 

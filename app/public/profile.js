@@ -766,7 +766,9 @@ async function loadReviewsTab() {
                 rev.user_rating !== null && rev.user_rating !== undefined
                     ? rev.user_rating
                     : 'N/A';
-            ratingSpan.textContent = ` — Rating: ${rating !== 'N/A' ? `${+rating}/10` : 'N/A'}`;
+            console.log(rev);
+            const hoursPlayed = rev.hours_played !== null && rev.hours_played !== undefined ? rev.hours_played : '';
+            ratingSpan.textContent = ` — Rating: ${rating !== 'N/A' ? `${+rating}/10` : 'N/A'} ${hoursPlayed !== '' ? `• ${hoursPlayed}h Played` : ''}`;
             topRow.appendChild(ratingSpan);
 
             const meta = document.createElement('div');
