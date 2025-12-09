@@ -277,6 +277,7 @@ th.sort-desc::after {
 
 .carousel {
     width: 100%;
+    height: auto;
     overflow-x: auto;
     overflow-y: hidden;
     /* margin: 1em auto; */
@@ -284,6 +285,7 @@ th.sort-desc::after {
     gap: 1em;
     scroll-behavior: smooth;
     scroll-snap-type: x mandatory;
+    padding-bottom: 10px;
 }
 
 .carousel::-webkit-scrollbar {

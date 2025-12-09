@@ -86,11 +86,15 @@ async function loadGames() {
             break;
         case 'top-rated':
             gamesHeader.textContent = 'Top Rated';
-            url = `/api/toprated?limit=${ITEMS_PER_PAGE}&offset=${offset}&includeStats=true`;
+            url = `/api/popular?sortBy=rating&limit=${ITEMS_PER_PAGE}&offset=${offset}&includeStats=true`;
             break;
         case 'most-reviewed':
             gamesHeader.textContent = 'Most Reviewed';
-            url = `/api/mostreviewed?limit=${ITEMS_PER_PAGE}&offset=${offset}&includeStats=true`;
+            url = `/api/popular?sortBy=reviews&limit=${ITEMS_PER_PAGE}&offset=${offset}&includeStats=true`;
+            break;
+        case 'most-favorited':
+            gamesHeader.textContent = 'Most Favorited';
+            url = `/api/popular?sortBy=favorites&limit=${ITEMS_PER_PAGE}&offset=${offset}&includeStats=true&includeCount=true`;
             break;
         default:
             break;
@@ -167,6 +171,10 @@ async function loadGames() {
         const usersTd = document.createElement('td');
         usersTd.textContent = game.entries;
         row.appendChild(usersTd);
+
+        const favoritesTd = document.createElement('td');
+        favoritesTd.textContent = game.favorites_count || 0;
+        row.appendChild(favoritesTd);
 
         const ratingTd = document.createElement('td');
         ratingTd.textContent = game.average_rating !== null ? `${game.average_rating}/10` : 'N/A';
@@ -366,7 +374,7 @@ function renderPagination(count) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    if (gamesType !== 'top-rated' && gamesType !== 'most-reviewed') {
+    if (gamesType !== 'top-rated' && gamesType !== 'most-reviewed' && gamesType !== 'most-favorited') {
         fetchGenres();
     } else {
         genreFilter.style.display = 'none';

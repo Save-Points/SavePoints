@@ -1,7 +1,7 @@
 import { generateGameCards } from "./utils/gameCard.js";
 
 async function loadGames(reset = false) {
-    const url = `/api/games?limit=25&includeStats=false&includeCount=false`;
+    const url = `/api/games?limit=30&includeStats=false&includeCount=false`;
     fetch(url)
         .then((res) => res.json())
         .then(async (data) => {
@@ -17,7 +17,7 @@ async function loadGames(reset = false) {
 }
 
 function loadNewReleases() {
-    const url = `/api/games?newReleases=true&limit=25&includeStats=false&includeCount=false`;
+    const url = `/api/games?newReleases=true&limit=30&includeStats=false&includeCount=false`;
     fetch(url)
         .then((res) => res.json())
         .then(async (data) => {
@@ -31,7 +31,7 @@ function loadNewReleases() {
 }
 
 function loadMostReviewed() {
-    const url = `/api/mostreviewed?limit=25`;
+    const url = `/api/popular?sortBy=reviews&limit=30&includeStats=false`;
     fetch(url)
         .then((res) => res.json())
         .then(async (data) => {
@@ -49,7 +49,7 @@ function loadMostReviewed() {
 }
 
 function loadTopRated() {
-    const url = `/api/toprated?limit=25`;
+    const url = `/api/popular?sortBy=rating&limit=30&includeStats=false`;
     fetch(url)
         .then((res) => res.json())
         .then(async (data) => {
@@ -63,6 +63,24 @@ function loadTopRated() {
         })
         .catch((error) =>
             console.error('Error loading top rated games:', error),
+        );
+}
+
+function loadMostFavorited() {
+    const url = `/api/popular?sortBy=favorites&limit=30&includeStats=false`;
+    fetch(url)
+        .then((res) => res.json())
+        .then(async (data) => {
+            const container = document.getElementById('mostFavoritedContainer');
+            if (!data || !Array.isArray(data.games)) return;
+
+            const cards = await generateGameCards(data.games);
+            for (const card of cards) {
+                container.appendChild(card);
+            }
+        })
+        .catch((error) =>
+            console.error('Error loading most favorited games:', error),
         );
 }
 
@@ -84,6 +102,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         loadNewReleases(),
         loadMostReviewed(),
         loadTopRated(),
+        loadMostFavorited(),
         setupScrollButtons()
     ]);
 });
