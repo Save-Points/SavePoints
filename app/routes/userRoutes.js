@@ -90,22 +90,37 @@ router.get('/view/:username', async (req, res) => {
     try {
         const result = await pool.query(
             `SELECT 
-                u.id,
-                u.username,
-                u.bio,
-                u.profile_pic_url,
+                u.id, 
+                u.username, 
+                u.bio, 
+                u.profile_pic_url, 
                 u.created_at,
-                COALESCE(SUM(CASE WHEN rv.vote = 'upvote' THEN 1 ELSE 0 END), 0)::int AS total_review_upvotes,
-                COALESCE(SUM(CASE WHEN rv.vote = 'downvote' THEN 1 ELSE 0 END), 0)::int AS total_review_downvotes,
-                COALESCE(SUM(CASE WHEN rpv.vote = 'upvote' THEN 1 ELSE 0 END), 0)::int AS total_reply_upvotes,
-                COALESCE(SUM(CASE WHEN rpv.vote = 'downvote' THEN 1 ELSE 0 END), 0)::int AS total_reply_downvotes
+                COALESCE(review_stats.upvotes, 0)::int AS total_review_upvotes,
+                COALESCE(review_stats.downvotes, 0)::int AS total_review_downvotes,
+                COALESCE(reply_stats.upvotes, 0)::int AS total_reply_upvotes,
+                COALESCE(reply_stats.downvotes, 0)::int AS total_reply_downvotes
             FROM users u
-            LEFT JOIN reviews r ON r.user_id = u.id
-            LEFT JOIN review_votes rv ON rv.review_id = r.id
-            LEFT JOIN review_replies rr ON rr.user_id = u.id
-            LEFT JOIN reply_votes rpv ON rpv.reply_id = rr.id
-            WHERE LOWER(u.username) = LOWER($1)
-            GROUP BY u.id;`,
+            LEFT JOIN (
+                SELECT 
+                    r.user_id,
+                    SUM(CASE WHEN rv.vote = 'upvote' THEN 1 ELSE 0 END) AS upvotes,
+                    SUM(CASE WHEN rv.vote = 'downvote' THEN 1 ELSE 0 END) AS downvotes
+                FROM reviews r
+                JOIN review_votes rv ON rv.review_id = r.id
+                WHERE r.deleted_at IS NULL
+                GROUP BY r.user_id
+            ) review_stats ON review_stats.user_id = u.id
+            LEFT JOIN (
+                SELECT 
+                    rr.user_id,
+                    SUM(CASE WHEN rpv.vote = 'upvote' THEN 1 ELSE 0 END) AS upvotes,
+                    SUM(CASE WHEN rpv.vote = 'downvote' THEN 1 ELSE 0 END) AS downvotes
+                FROM review_replies rr
+                JOIN reply_votes rpv ON rpv.reply_id = rr.id
+                WHERE rr.deleted_at IS NULL
+                GROUP BY rr.user_id
+            ) reply_stats ON reply_stats.user_id = u.id
+            WHERE LOWER(u.username) = LOWER($1);`,
             [username]
         );
 
