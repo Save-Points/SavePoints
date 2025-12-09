@@ -166,7 +166,7 @@ router.get('/:userId/reviews', async (req, res) => {
     try {
         const { rows } = await pool.query(
             `
-            SELECT r.id AS review_id, r.game_id, r.review_text, r.created_at, r.updated_at, r.deleted_at, ug.rating AS user_rating
+            SELECT r.id AS review_id, r.game_id, r.review_text, r.created_at, r.updated_at, r.deleted_at, ug.rating AS user_rating, ug.hours_played
             FROM reviews r
             LEFT JOIN user_games ug
                 ON ug.user_id = r.user_id
