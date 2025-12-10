@@ -865,7 +865,7 @@ function setActive(elem) {
 function setTabUrl(tab) {
     const url = new URL(window.location);
     url.searchParams.set('tab', tab);
-    history.pushState(null, '', url);
+    history.replaceState(null, '', url);
 }
 
 overviewTab.addEventListener('click', async () => {
